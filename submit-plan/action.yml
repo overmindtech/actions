@@ -4,15 +4,18 @@ description: |
 
   Use the `overmindtech/actions/install` action to install the CLI before this.
 
-  This action requires `terraform` to be installed and on the `$PATH`
+  This action requires `terraform` to be installed and on the `$PATH`, as well as the modules initialised.
 inputs:
   github_token:
     description: Pass in a github token to allow posting comments to the PR
   ovm_token:
     description: Pass in an overmind token to give access to your account on Overmind
+  terraform_working_dir:
+    description: The working directory for terraform (contains `.terraform`; defaults to `.`)
+    default: .
   plan_file:
-    description: The location of the terraform plan file (generated from `terraform plan -out=...`, defaults to `tfplan`)
-    default: tfplan
+    description: The location of the terraform plan file (generated from `terraform plan -out=...`; relative to `terraform_working_dir`; defaults to `./tfplan`)
+    default: ./tfplan
 
 runs:
   using: composite
@@ -22,5 +25,7 @@ runs:
       env:
         OVM_TOKEN: ${{ inputs.ovm_token }}
       run: |
+        set -ex
+        cd ${{ inputs.terraform_working_dir }}
         terraform show -json ${{ inputs.plan_file }} \
           | ./overmindtech/ovm-cli change-from-tfplan --github-event-path ${{ github.event_path }}
