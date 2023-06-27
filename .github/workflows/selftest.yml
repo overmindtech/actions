@@ -35,6 +35,12 @@ jobs:
           terraform init
           terraform plan -out=tfplan
 
+      - name: Upload Example Data
+        uses: actions/upload-artifact@v3
+        with:
+          name: event.json
+          path: ${{ github.event_path }}
+
       - uses: ./submit-plan
         with:
           github_token: ${{ secrets.CLONE_ALL }}
