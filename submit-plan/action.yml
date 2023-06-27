@@ -24,7 +24,7 @@ runs:
       shell: bash
       if: ${{ github.event_name != 'pull_request' }}
       run: |
-        echo "::error ::Need to run as pull_request, not ${{ github.event_name }}"
+        echo "::error ::Need to run as pull_request, not '${{ github.event_name }}'"
         exit 1
 
     - name: Transform plan to json
