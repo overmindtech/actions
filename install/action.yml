@@ -20,7 +20,7 @@ runs:
         fileName: "ovm-cli_Linux_x86_64.tar.gz"
         tarBall: true
         extract: true
-        latest: ${{ inputs.version == "latest" }}
-        tag: ${{ inputs.version == "latest" && "" || inputs.version }}
+        latest: ${{ inputs.version == 'latest' }}
+        tag: ${{ inputs.version == 'latest' && "" || inputs.version }}
         out-file-path: "overmindtech"
         github-api-url: ${{ inputs.github-api-url }}
