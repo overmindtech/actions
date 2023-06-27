@@ -1,2 +1,3 @@
-# ovm-action
-Github Action to create a Terraform Impact Analysis on a change
+# overmind actions
+
+Github Actions to run Terraform Impact Analysis on PRs
