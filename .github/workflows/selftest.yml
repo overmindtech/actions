@@ -34,12 +34,19 @@ jobs:
           cd ./testmodule
           terraform init
           terraform plan -out=tfplan
+          terraform show -json tfplan > tfplan.json
 
-      - name: Upload Example Data
+      - name: Upload Example GitHub Data
         uses: actions/upload-artifact@v3
         with:
-          name: event.json
+          name: github_event.json
           path: ${{ github.event_path }}
+
+      - name: Upload Example Plan Data
+        uses: actions/upload-artifact@v3
+        with:
+          name: tfplan.json
+          path: testmodule/tfplan.json
 
       - uses: ./submit-plan
         with:
