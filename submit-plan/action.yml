@@ -1,0 +1,26 @@
+name: Submit Terraform plan to Overmind
+description: |
+  Uses the Overmind CLI to submit a terraform plan as a new Change to the Overmind API. Results will be posted as a comment on the PR.
+
+  Use the `overmindtech/actions/install` action to install the CLI before this.
+
+  This action requires `terraform` to be installed and on the `$PATH`
+inputs:
+  github_token:
+    description: Pass in a github token to allow posting comments to the PR
+  ovm_token:
+    description: Pass in an overmind token to give access to your account on Overmind
+  plan-file:
+    description: The location of the terraform plan file (generated from `terraform plan -out=...`, defaults to `tfplan`)
+    default: tfplan
+
+runs:
+  using: composite
+  steps:
+    - name: Transform plan to json
+      shell: bash
+      env:
+        OVM_TOKEN: ${{ inputs.ovm_token }}
+      run: |
+        terraform show -json ${{ inputs.plan-file }} \
+          | ./overmindtech/ovm-cli change-from-tfplan --github-event-path ${{ github.event_path }}

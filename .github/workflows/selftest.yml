@@ -10,9 +10,32 @@ jobs:
       - uses: ./install
         with:
           version: latest
-          token: ${{ secrets.CLONE_ALL }}
+          github_token: ${{ secrets.CLONE_ALL }}
 
-      - name: test
+      - name: test cli install
         run: |
-            set -ex
-            ./overmindtech/ovm-cli --help
+          set -ex
+          ./overmindtech/ovm-cli --help
+
+      - name: Cache Terraform Providers
+        id: cache-terraform
+        uses: actions/cache@v3
+        with:
+          path: ./testmodule/.terraform
+          key: ${{ runner.os }}-${{ hashFiles('./testmodule/.terraform.lock.hcl') }}
+
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - name: prepare terraform test module
+        run: |
+          set -ex
+          cd ./testmodule
+          terraform init
+          terraform plan -out=tfplan
+
+      - uses: ./submit-plan
+        with:
+          github_token: ${{ secrets.CLONE_ALL }}
+          ovm_token: ${{ secrets.OVM_TOKEN }}
