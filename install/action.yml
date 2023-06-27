@@ -1,0 +1,26 @@
+name: Install Overmind CLI
+description: Downloads and installs the Overmind CLI, ready to use in ./overmindtech
+inputs:
+  version:
+    description: This property can be used to request a specific version for install. Defaults to `latest`.
+    default: latest
+  github-api-url:
+    description: |
+      The URL of the Github API, only use this input if you are using Github Enterprise
+      Use http(s)://[hostname]/api/v3 to access the API for GitHub Enterprise Server
+    default: "https://api.github.com"
+
+runs:
+  using: composite
+  steps:
+    - name: Install Overmind CLI
+      uses: robinraju/release-downloader@v1.8
+      with:
+        repository: overmindtech/ovm-cli
+        fileName: "ovm-cli_Linux_x86_64.tar.gz"
+        tarBall: true
+        extract: true
+        latest: ${{ inputs.version == "latest" }}
+        tag: ${{ inputs.version == "latest" && "" || inputs.version }}
+        out-file-path: "overmindtech"
+        github-api-url: ${{ inputs.github-api-url }}
