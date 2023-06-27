@@ -5,6 +5,8 @@ jobs:
     name: Overmind Action Selftests
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+
       - uses: ./install
         with:
           version: latest
