@@ -1,0 +1,15 @@
+name: Overmind Action Selftests
+on: push
+jobs:
+  selftest:
+    name: Overmind Action Selftests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./install
+        with:
+          version: latest
+
+      - name: test
+        run: |
+            set -ex
+            ./overmindtech/ovm-cli --help
