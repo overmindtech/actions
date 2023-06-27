@@ -26,6 +26,7 @@ runs:
         OVM_TOKEN: ${{ inputs.ovm_token }}
       run: |
         set -ex
-        cd ${{ inputs.terraform_working_dir }}
-        terraform show -json ${{ inputs.plan_file }} \
-          | ./overmindtech/ovm-cli change-from-tfplan --github-event-path ${{ github.event_path }}
+        (
+          cd ${{ inputs.terraform_working_dir }}
+          terraform show -json ${{ inputs.plan_file }}
+        ) | ./overmindtech/ovm-cli change-from-tfplan --github-event-path ${{ github.event_path }}
