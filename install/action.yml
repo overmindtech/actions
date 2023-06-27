@@ -10,7 +10,7 @@ inputs:
       Use http(s)://[hostname]/api/v3 to access the API for GitHub Enterprise Server
     default: "https://api.github.com"
   token:
-    description: Pass in `${{ '${{ secrets.GITHUB_TOKEN }}' }}` to avoid API rate limits
+    description: Pass in a github token to avoid API rate limits
 
 runs:
   using: composite
