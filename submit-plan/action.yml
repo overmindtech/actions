@@ -10,7 +10,7 @@ inputs:
     description: Pass in a github token to allow posting comments to the PR
   ovm_token:
     description: Pass in an overmind token to give access to your account on Overmind
-  plan-file:
+  plan_file:
     description: The location of the terraform plan file (generated from `terraform plan -out=...`, defaults to `tfplan`)
     default: tfplan
 
@@ -22,5 +22,5 @@ runs:
       env:
         OVM_TOKEN: ${{ inputs.ovm_token }}
       run: |
-        terraform show -json ${{ inputs.plan-file }} \
+        terraform show -json ${{ inputs.plan_file }} \
           | ./overmindtech/ovm-cli change-from-tfplan --github-event-path ${{ github.event_path }}
