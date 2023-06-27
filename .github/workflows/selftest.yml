@@ -10,6 +10,7 @@ jobs:
       - uses: ./install
         with:
           version: latest
+          token: ${{ secrets.CLONE_ALL }}
 
       - name: test
         run: |
