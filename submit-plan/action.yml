@@ -20,6 +20,13 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Require to run in a PR
+      shell: bash
+      if: ${{ github.event_name != 'pull_request' }}
+      run: |
+        echo "::error ::Need to run as pull_request, not ${{ github.event_name }}"
+        exit 1
+
     - name: Transform plan to json
       shell: bash
       env:

@@ -1,5 +1,7 @@
 name: Overmind Action Selftests
-on: pull_request
+on:
+  - pull_request
+  - push
 jobs:
   selftest:
     name: Overmind Action Selftests
@@ -49,6 +51,8 @@ jobs:
           path: testmodule/tfplan.json
 
       - uses: ./submit-plan
+        # will need manual checking that the assertion fails on push events
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
         with:
           github_token: ${{ secrets.CLONE_ALL }}
           ovm_token: ${{ secrets.OVM_TOKEN }}
