@@ -21,6 +21,6 @@ runs:
         tarBall: true
         extract: true
         latest: ${{ inputs.version == 'latest' }}
-        tag: ${{ inputs.version == 'latest' && "" || inputs.version }}
+        tag: ${{ inputs.version == 'latest' && '' || inputs.version }}
         out-file-path: "overmindtech"
         github-api-url: ${{ inputs.github-api-url }}
