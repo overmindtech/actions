@@ -36,4 +36,7 @@ runs:
         (
           cd ${{ inputs.terraform_working_dir }}
           terraform show -json ${{ inputs.plan_file }}
-        ) | ./overmindtech/ovm-cli change-from-tfplan --github-event-path ${{ github.event_path }}
+        ) | ./overmindtech/ovm-cli change-from-tfplan \
+            --title '${{ github.event.pull_request.title }}' \
+            --description 'This change was automatically created from a PR' \
+            --ticket-link '${{ github.event.pull_request.html_url }}'
