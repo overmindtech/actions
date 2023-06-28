@@ -40,12 +40,14 @@ jobs:
 
       - name: Upload Example GitHub Data
         uses: actions/upload-artifact@v3
+        if: ${{ !env.ACT }} # skip during local actions testing
         with:
           name: github_event.json
           path: ${{ github.event_path }}
 
       - name: Upload Example Plan Data
         uses: actions/upload-artifact@v3
+        if: ${{ !env.ACT }} # skip during local actions testing
         with:
           name: tfplan.json
           path: testmodule/tfplan.json
