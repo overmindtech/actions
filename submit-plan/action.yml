@@ -29,6 +29,7 @@ runs:
       env:
         OVM_TOKEN: ${{ inputs.ovm_token }}
       run: |
+        set -x
         ./overmindtech/ovm-cli change-from-tfplan \
             --title '${{ github.event.pull_request.title }}' \
             --description 'This change was automatically created from a PR' \

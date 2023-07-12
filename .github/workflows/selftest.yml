@@ -20,6 +20,8 @@ jobs:
       - name: test cli install
         run: |
           set -ex
+          ./overmindtech/ovm-cli --version
+
           ./overmindtech/ovm-cli --help
 
       - name: Cache Terraform Providers
