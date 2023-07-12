@@ -6,6 +6,9 @@ jobs:
   selftest:
     name: Overmind Action Selftests
     runs-on: ubuntu-latest
+    env:
+      URL: ${{ vars.URL }}
+
     steps:
       - uses: actions/checkout@v3
 
