@@ -7,31 +7,31 @@ jobs:
     name: Overmind Action Selftests
     runs-on: ubuntu-latest
     env:
-      FRONTEND: ${{ vars.FRONTEND }}
       URL: ${{ vars.URL }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-      - uses: ./install-cli
+      - uses: ./install
         with:
           version: latest
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.CLONE_ALL }}
 
       - name: test cli install
         run: |
           set -ex
-          ./overmindtech/overmind --version
-          ./overmindtech/overmind --help
+          ./overmindtech/ovm-cli --version
+
+          ./overmindtech/ovm-cli --help
 
       - name: Cache Terraform Providers
         id: cache-terraform
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: ./testmodule/.terraform
           key: ${{ runner.os }}-${{ hashFiles('./testmodule/.terraform.lock.hcl') }}
 
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v2
         with:
           terraform_wrapper: false
 
@@ -40,34 +40,27 @@ jobs:
           set -ex
           cd ./testmodule
           terraform init
-          terraform plan -out=tfplan | tee terraform_log
+          terraform plan -out=tfplan
           terraform show -json tfplan > tfplan.json
 
       - name: Upload Example GitHub Data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         if: ${{ !env.ACT }} # skip during local actions testing
         with:
           name: github_event.json
           path: ${{ github.event_path }}
 
       - name: Upload Example Plan Data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         if: ${{ !env.ACT }} # skip during local actions testing
         with:
           name: tfplan.json
           path: testmodule/tfplan.json
 
       - uses: ./submit-plan
+        # will need manual checking that the assertion fails on push events
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
         with:
-          ovm-api-key: ${{ secrets.OVM_TOKEN }}
-          plan-json: ./testmodule/tfplan.json
-          plan-output: ./testmodule/terraform_log
-          tags: foo=bar,spaces=are ok
-
-      - uses: ./start-change
-        with:
-          ovm-api-key: ${{ secrets.OVM_TOKEN }}
-
-      - uses: ./end-change
-        with:
-          ovm-api-key: ${{ secrets.OVM_TOKEN }}
+          github_token: ${{ secrets.CLONE_ALL }}
+          ovm_token: ${{ secrets.OVM_TOKEN }}
+          plan_file: ./testmodule/tfplan.json

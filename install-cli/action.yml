@@ -1,8 +1,4 @@
 name: Install Overmind CLI
-author: https://overmind.tech
-branding:
-  color: purple
-  icon: download
 description: Downloads and installs the Overmind CLI, ready to use in ./overmindtech
 inputs:
   version:
@@ -13,25 +9,21 @@ inputs:
       The URL of the Github API, only use this input if you are using Github Enterprise
       Use http(s)://[hostname]/api/v3 to access the API for GitHub Enterprise Server
     default: "https://api.github.com"
-  github-token:
+  github_token:
     description: Pass in a github token to avoid API rate limits
 
 runs:
   using: composite
   steps:
     - name: Install Overmind CLI
-      uses: robinraju/release-downloader@v1.11
+      uses: robinraju/release-downloader@v1.8
       with:
-        repository: overmindtech/cli
-        fileName: "overmind_cli_*Linux_x86_64.tar.gz"
+        repository: overmindtech/ovm-cli
+        fileName: "ovm-cli_Linux_x86_64.tar.gz"
         tarBall: true
         extract: true
         latest: ${{ inputs.version == 'latest' }}
         tag: ${{ inputs.version == 'latest' && '' || inputs.version }}
         out-file-path: "overmindtech"
         github-api-url: ${{ inputs.github-api-url }}
-        token: ${{ inputs.github-token }}
-
-    - name: Installed version
-      shell: bash
-      run: ./overmindtech/overmind --version
+        token: ${{ inputs.github_token }}
