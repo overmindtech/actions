@@ -13,16 +13,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: ./install
+      - uses: ./install-cli
         with:
           version: latest
-          github_token: ${{ secrets.CLONE_ALL }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: test cli install
         run: |
           set -ex
           ./overmindtech/ovm-cli --version
-
           ./overmindtech/ovm-cli --help
 
       - name: Cache Terraform Providers
@@ -63,12 +62,12 @@ jobs:
         # will need manual checking that the assertion fails on push events
         continue-on-error: ${{ github.event_name != 'pull_request' }}
         with:
-          github_token: ${{ secrets.CLONE_ALL }}
-          ovm_token: ${{ secrets.OVM_TOKEN }}
-          plan_file: ./testmodule/tfplan.json
+          ovm-api-key: ${{ secrets.OVM_TOKEN }}
+          plan-json: ./testmodule/tfplan.json
 
       - name: post change url as sticky comment
         uses: marocchino/sticky-pull-request-comment@v2
+        if: ${{ !env.ACT && github.event_name == 'pull_request' }} # skip during local actions testing
         with:
           header: change
           message: |
