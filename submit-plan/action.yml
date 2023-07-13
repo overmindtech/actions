@@ -1,4 +1,8 @@
 name: Submit Terraform plan to Overmind
+author: https://overmind.tech
+branding:
+  color: purple
+  icon: upload-cloud
 description: |
   Uses the Overmind CLI to submit a terraform plan as a new Change to the Overmind API. Results will be posted as a comment on the PR.
 

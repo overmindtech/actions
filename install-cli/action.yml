@@ -1,4 +1,8 @@
 name: Install Overmind CLI
+author: https://overmind.tech
+branding:
+  color: purple
+  icon: download
 description: Downloads and installs the Overmind CLI, ready to use in ./overmindtech
 inputs:
   version:
