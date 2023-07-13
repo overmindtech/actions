@@ -6,17 +6,15 @@ description: |
 
   This action requires `terraform` to be installed and on the `$PATH`, as well as the modules initialised.
 inputs:
-  github_token:
-    description: Pass in a github token to allow posting comments to the PR
-  ovm_token:
+  ovm-api-key:
     description: Pass in an overmind token to give access to your account on Overmind
-  plan_file:
+  plan-json:
     description: The location of the terraform plan file (generated from `terraform plan -out=...` and `terraform show -json ...`; defaults to `tfplan.json`)
     default: tfplan.json
 outputs:
   change-url:
     description: "The URL of the created change"
-    value: ${{ steps.change-from-tfplan.outputs.change-url }}
+    value: ${{ steps.submit-plan.outputs.change-url }}
 
 runs:
   using: composite
@@ -29,15 +27,15 @@ runs:
         exit 1
 
     - name: Create a Change from a terraform plan
-      id: change-from-tfplan
+      id: submit-plan
       shell: bash
       env:
-        OVM_TOKEN: ${{ inputs.ovm_token }}
+        OVM_API_KEY: ${{ inputs.ovm-api-key }}
       run: |
         set -x
-        echo change-url=$(./overmindtech/ovm-cli change-from-tfplan \
+        echo change-url=$(./overmindtech/ovm-cli submit-plan \
             --title '${{ github.event.pull_request.title }}' \
             --description 'This change was automatically created from a PR' \
             --ticket-link '${{ github.event.pull_request.html_url }}' \
-            --tfplan-json '${{ inputs.plan_file }}') \
+            --plan-json '${{ inputs.plan-json }}') \
             >> $GITHUB_OUTPUT
