@@ -1,18 +1,66 @@
 name: Overmind Action Selftests
-on: push
+on:
+  - pull_request
+  - push
 jobs:
   selftest:
     name: Overmind Action Selftests
     runs-on: ubuntu-latest
+    env:
+      URL: ${{ vars.URL }}
+
     steps:
       - uses: actions/checkout@v3
 
       - uses: ./install
         with:
           version: latest
-          token: ${{ secrets.CLONE_ALL }}
+          github_token: ${{ secrets.CLONE_ALL }}
 
-      - name: test
+      - name: test cli install
         run: |
-            set -ex
-            ./overmindtech/ovm-cli --help
+          set -ex
+          ./overmindtech/ovm-cli --version
+
+          ./overmindtech/ovm-cli --help
+
+      - name: Cache Terraform Providers
+        id: cache-terraform
+        uses: actions/cache@v3
+        with:
+          path: ./testmodule/.terraform
+          key: ${{ runner.os }}-${{ hashFiles('./testmodule/.terraform.lock.hcl') }}
+
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - name: prepare terraform test module
+        run: |
+          set -ex
+          cd ./testmodule
+          terraform init
+          terraform plan -out=tfplan
+          terraform show -json tfplan > tfplan.json
+
+      - name: Upload Example GitHub Data
+        uses: actions/upload-artifact@v3
+        if: ${{ !env.ACT }} # skip during local actions testing
+        with:
+          name: github_event.json
+          path: ${{ github.event_path }}
+
+      - name: Upload Example Plan Data
+        uses: actions/upload-artifact@v3
+        if: ${{ !env.ACT }} # skip during local actions testing
+        with:
+          name: tfplan.json
+          path: testmodule/tfplan.json
+
+      - uses: ./submit-plan
+        # will need manual checking that the assertion fails on push events
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
+        with:
+          github_token: ${{ secrets.CLONE_ALL }}
+          ovm_token: ${{ secrets.OVM_TOKEN }}
+          plan_file: ./testmodule/tfplan.json
