@@ -13,6 +13,10 @@ inputs:
   plan_file:
     description: The location of the terraform plan file (generated from `terraform plan -out=...` and `terraform show -json ...`; defaults to `tfplan.json`)
     default: tfplan.json
+outputs:
+  change-url:
+    description: "The URL of the created change"
+    value: ${{ steps.change-from-tfplan.outputs.change-url }}
 
 runs:
   using: composite
@@ -24,14 +28,16 @@ runs:
         echo "::error ::Need to run as pull_request, not '${{ github.event_name }}'"
         exit 1
 
-    - name: Transform plan to json
+    - name: Create a Change from a terraform plan
+      id: change-from-tfplan
       shell: bash
       env:
         OVM_TOKEN: ${{ inputs.ovm_token }}
       run: |
         set -x
-        ./overmindtech/ovm-cli change-from-tfplan \
+        echo change-url=$(./overmindtech/ovm-cli change-from-tfplan \
             --title '${{ github.event.pull_request.title }}' \
             --description 'This change was automatically created from a PR' \
             --ticket-link '${{ github.event.pull_request.html_url }}' \
-            --tfplan-json '${{ inputs.plan_file }}'
+            --tfplan-json '${{ inputs.plan_file }}') \
+            >> $GITHUB_OUTPUT
