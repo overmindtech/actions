@@ -7,6 +7,7 @@ jobs:
     name: Overmind Action Selftests
     runs-on: ubuntu-latest
     env:
+      FRONTEND: ${{ vars.FRONTEND }}
       URL: ${{ vars.URL }}
 
     steps:
@@ -58,9 +59,17 @@ jobs:
           path: testmodule/tfplan.json
 
       - uses: ./submit-plan
+        id: submit-plan
         # will need manual checking that the assertion fails on push events
         continue-on-error: ${{ github.event_name != 'pull_request' }}
         with:
           github_token: ${{ secrets.CLONE_ALL }}
           ovm_token: ${{ secrets.OVM_TOKEN }}
           plan_file: ./testmodule/tfplan.json
+
+      - name: post change url as sticky comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: change
+          message: |
+            See the effect of your planned changes at [Overmind](${{ steps.submit-plan.outputs.change-url }})
