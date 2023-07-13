@@ -9,7 +9,7 @@ inputs:
       The URL of the Github API, only use this input if you are using Github Enterprise
       Use http(s)://[hostname]/api/v3 to access the API for GitHub Enterprise Server
     default: "https://api.github.com"
-  github_token:
+  github-token:
     description: Pass in a github token to avoid API rate limits
 
 runs:
@@ -26,4 +26,4 @@ runs:
         tag: ${{ inputs.version == 'latest' && '' || inputs.version }}
         out-file-path: "overmindtech"
         github-api-url: ${{ inputs.github-api-url }}
-        token: ${{ inputs.github_token }}
+        token: ${{ inputs.github-token }}
