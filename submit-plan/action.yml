@@ -35,8 +35,7 @@ runs:
       env:
         OVM_API_KEY: ${{ inputs.ovm-api-key }}
       run: |
-        set -x
-        set -e
+        set -xe
 
         url=$(./overmindtech/ovm-cli submit-plan \
             --title '${{ github.event.pull_request.title }}' \
