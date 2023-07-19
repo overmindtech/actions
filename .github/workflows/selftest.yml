@@ -64,11 +64,3 @@ jobs:
         with:
           ovm-api-key: ${{ secrets.OVM_TOKEN }}
           plan-json: ./testmodule/tfplan.json
-
-      - name: post change url as sticky comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: ${{ !env.ACT && github.event_name == 'pull_request' }} # skip during local actions testing
-        with:
-          header: change
-          message: |
-            See the effect of your planned changes at [Overmind](${{ steps.submit-plan.outputs.change-url }})
