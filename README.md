@@ -1,27 +1,29 @@
-# overmind actions
+# Overmind Actions
 
-Github Actions to run [Overmind](https://overmind.tech/) Terraform Impact Analysis on PRs
+Use [Overmind](https://overmind.tech/) to calculate the blast radius of your Terraform pull requests.
+
+![blast radius preview](./doc/blast_radius.png)
 
 # Usage
 
 The `install` action installs the [`ovm-cli`](https://github.com/overmindtech/ovm-cli).
 
-```
+```yaml
 - uses: overmindtech/actions/install-cli@main
   with:
-    version: latest # request a specific version for install. Defaults to `latest`.
-    github-token: ${{ secrets.GITHUB_TOKEN }} # avoid API limits
-    github-api-url: # Use http(s)://[hostname]/api/v3 to access the API for GitHub Enterprise Server
+    version: latest # Request a specific version for install. Defaults to `latest`.
+    github-token: ${{ secrets.GITHUB_TOKEN }} # Avoid API limits (optional)
+    github-api-url: https://ghe.company.com/api/v3 # API for GitHub Enterprise Server (optional)
 ```
 
 The `submit-plan` action takes a JSON-formatted terraform plan, creates a Overmind Change for it, and runs Impact Analysis.
 
-```
+```yaml
 - uses: overmindtech/actions/submit-plan@main
   id: submit-plan
   with:
-    ovm-api-key: ${{ secrets.OVM_TOKEN }}
-    plan-json: ./tfplan.json
+    ovm-api-key: ${{ secrets.OVM_TOKEN }} # Generated within Overmind
+    plan-json: ./tfplan.json # Location of the plan in JSON format
 ```
 
 ## Complete example
@@ -30,7 +32,7 @@ Copy this workflow to `.github/workflows/overmind.yml` to run `terraform init`, 
 
 > Note: This example does not include any configuration to allow terraform access to your infrastructure.
 
-```
+```yaml
 name: Terraform Validation
 on: [pull_request]
 
@@ -44,21 +46,20 @@ jobs:
       group: tfstate # avoid running more than one job at the same time
 
     steps:
+      # Checkout your code
       - uses: actions/checkout@v3
 
+      # Set up Terraform
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_wrapper: false
-
       - name: Terraform Init
         id: init
         shell: bash
         run: terraform init -input=false
 
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
-
+      # Run Terraform plan. Note that these commands will allow terraform to
+      # log nicely and also create a plan JSON file
       - name: Terraform Plan
         id: plan
         run: |
@@ -67,20 +68,15 @@ jobs:
             | tee terraform_log
           terraform show -json tfplan > tfplan.json
 
+      # Install the Overmind CLI
       - uses: overmindtech/actions/install-cli@main
 
+      # Submit the plan. This will add a comment with the blast radius
       - uses: overmindtech/actions/submit-plan@main
         id: submit-plan
         with:
           ovm-api-key: ${{ secrets.OVM_TOKEN }}
           plan-json: ./tfplan.json
-
-      - name: post change url as sticky comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: change
-          message: |
-            See the blast radius of your planned changes at [Overmind](${{ steps.submit-plan.outputs.change-url }})
 ```
 
 # Development
