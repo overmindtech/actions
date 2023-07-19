@@ -7,21 +7,21 @@ jobs:
     name: Overmind Action Selftests
     runs-on: ubuntu-latest
     env:
+      FRONTEND: ${{ vars.FRONTEND }}
       URL: ${{ vars.URL }}
 
     steps:
       - uses: actions/checkout@v3
 
-      - uses: ./install
+      - uses: ./install-cli
         with:
           version: latest
-          github_token: ${{ secrets.CLONE_ALL }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: test cli install
         run: |
           set -ex
           ./overmindtech/ovm-cli --version
-
           ./overmindtech/ovm-cli --help
 
       - name: Cache Terraform Providers
@@ -58,9 +58,9 @@ jobs:
           path: testmodule/tfplan.json
 
       - uses: ./submit-plan
+        id: submit-plan
         # will need manual checking that the assertion fails on push events
         continue-on-error: ${{ github.event_name != 'pull_request' }}
         with:
-          github_token: ${{ secrets.CLONE_ALL }}
-          ovm_token: ${{ secrets.OVM_TOKEN }}
-          plan_file: ./testmodule/tfplan.json
+          ovm-api-key: ${{ secrets.OVM_TOKEN }}
+          plan-json: ./testmodule/tfplan.json
