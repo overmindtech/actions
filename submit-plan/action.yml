@@ -11,6 +11,9 @@ inputs:
   plan-json:
     description: The location of the terraform plan file (generated from `terraform plan -out=...` and `terraform show -json ...`; defaults to `tfplan.json`)
     default: tfplan.json
+  log:
+    description: The log level for the job
+    default: info
 outputs:
   change-url:
     description: "The URL of the created change"
@@ -33,9 +36,21 @@ runs:
         OVM_API_KEY: ${{ inputs.ovm-api-key }}
       run: |
         set -x
-        echo change-url=$(./overmindtech/ovm-cli submit-plan \
+        set -e
+
+        url=$(./overmindtech/ovm-cli submit-plan \
             --title '${{ github.event.pull_request.title }}' \
             --description 'This change was automatically created from a PR' \
             --ticket-link '${{ github.event.pull_request.html_url }}' \
-            --plan-json '${{ inputs.plan-json }}') \
-            >> $GITHUB_OUTPUT
+            --plan-json '${{ inputs.plan-json }}' \
+            --log '${{ inputs.log }}')
+
+        echo "change-url=$url" >> $GITHUB_OUTPUT
+
+    - name: Post change url as sticky comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: ${{ steps.submit-plan.outputs.change-url != '' }}
+      with:
+        header: change
+        message: |
+          See the blast radius of your planned changes at [Overmind](${{ steps.submit-plan.outputs.change-url }})
