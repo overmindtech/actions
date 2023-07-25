@@ -2,6 +2,24 @@
 
 Use [Overmind](https://overmind.tech/) to calculate the blast radius of your Terraform pull requests.
 
+<details>
+  <summary>Not using GitHub?</summary>
+  
+  Currently we only have an action for GitHub, but don't fear! We have a CLI that you can use to integrate your own CI tooling:
+
+  1. Download the CLI from here: https://github.com/overmindtech/ovm-cli/releases
+  2. Set the `OVM_API_KEY` environment variable to your API Key
+  3. Add a step to your pipeline to create a change:
+
+  ```
+  ./ovm-cli submit-plan \
+    --title 'Pull request title goes here' \
+    --description 'PR description goes here' \
+    --ticket-link 'link to PR goes here' \
+    --plan-json 'path/to/plan.json'
+  ```
+</details>
+
 ![blast radius preview](./doc/blast_radius.png)
 
 # Usage
