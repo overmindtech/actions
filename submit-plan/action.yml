@@ -50,10 +50,20 @@ runs:
 
         echo "change-url=$url" >> $GITHUB_OUTPUT
 
+        ./overmindtech/ovm-cli get-change \
+          --change "$url" \
+          --format markdown \
+          --log '${{ inputs.log }}') \
+          > ./overmindtech/message
+
+        DELIMITER="$(uuidgen)"
+        echo "message<<$DELIMITER" >> $GITHUB_OUTPUT
+        cat ./overmindtech/message >> $GITHUB_OUTPUT
+        echo "$DELIMITER" >> $GITHUB_OUTPUT
+
     - name: Post change url as sticky comment
       uses: marocchino/sticky-pull-request-comment@v2
       if: ${{ steps.submit-plan.outputs.change-url != '' }}
       with:
         header: change
-        message: |
-          See the blast radius of your planned changes at [Overmind](${{ steps.submit-plan.outputs.change-url }})
+        message: ${{ steps.submit-plan.outputs.message }}
