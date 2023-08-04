@@ -60,7 +60,7 @@ runs:
         echo "change-url=$(< ./overmindtech/change-url)" >> $GITHUB_OUTPUT
 
         ./overmindtech/ovm-cli get-change \
-          --change "$url" \
+          --change "$(< ./overmindtech/change-url)" \
           --format markdown \
           --log '${{ inputs.log }}' \
           > ./overmindtech/message
