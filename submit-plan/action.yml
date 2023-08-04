@@ -62,7 +62,7 @@ runs:
         ./overmindtech/ovm-cli get-change \
           --change "$url" \
           --format markdown \
-          --log '${{ inputs.log }}') \
+          --log '${{ inputs.log }}' \
           > ./overmindtech/message
 
         DELIMITER="$(uuidgen)"
