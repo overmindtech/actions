@@ -29,4 +29,4 @@ runs:
 
         ./overmindtech/ovm-cli end-change \
             --ticket-link '${{ github.event.pull_request.html_url }}' \
-            --log '${{ inputs.log }}')
+            --log '${{ inputs.log }}'
