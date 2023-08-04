@@ -1,0 +1,32 @@
+name: Start a change from a PR
+author: https://overmind.tech
+branding:
+  color: purple
+  icon: play
+description: |
+  Uses the Overmind CLI to start a Change with the Overmind API.
+
+  Use the `overmindtech/actions/install` action to install the CLI before this.
+
+  By default this uses the calling PR as Ticket Link to work out which Change to start.
+inputs:
+  ovm-api-key:
+    description: Pass in an overmind token to give access to your account on Overmind
+  log:
+    description: The log level for the job
+    default: info
+
+runs:
+  using: composite
+  steps:
+    - name: Start a Change
+      id: start-change
+      shell: bash
+      env:
+        OVM_API_KEY: ${{ inputs.ovm-api-key }}
+      run: |
+        set -xe
+
+        ./overmindtech/ovm-cli start-change \
+            --ticket-link '${{ github.event.pull_request.html_url }}' \
+            --log '${{ inputs.log }}')
