@@ -31,3 +31,7 @@ runs:
         out-file-path: "overmindtech"
         github-api-url: ${{ inputs.github-api-url }}
         token: ${{ inputs.github-token }}
+
+    - name: Installed version
+      shell: bash
+      run: ./overmindtech/ovm-cli --version
