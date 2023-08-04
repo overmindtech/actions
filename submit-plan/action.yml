@@ -8,7 +8,9 @@ description: |
 
   Use the `overmindtech/actions/install` action to install the CLI before this.
 
-  This action requires `terraform` to be installed and on the `$PATH`, as well as the modules initialised.
+  This action requires the location of the results of `terraform show -json $TFPLAN_FILE` passed in as `plan-json`.
+
+  By default this uses the calling PR as Ticket Link for the new Change.
 inputs:
   ovm-api-key:
     description: Pass in an overmind token to give access to your account on Overmind
@@ -21,6 +23,10 @@ inputs:
 outputs:
   change-url:
     description: "The URL of the created change"
+    value: ${{ steps.submit-plan.outputs.change-url }}
+
+  message:
+    description: "A markdown formatted message describing the current state of the change"
     value: ${{ steps.submit-plan.outputs.change-url }}
 
 runs:
@@ -41,19 +47,44 @@ runs:
       run: |
         set -xe
 
-        url=$(./overmindtech/ovm-cli submit-plan \
+        ./overmindtech/ovm-cli submit-plan \
             --title '${{ github.event.pull_request.title }}' \
             --description 'This change was automatically created from a PR' \
             --ticket-link '${{ github.event.pull_request.html_url }}' \
             --plan-json '${{ inputs.plan-json }}' \
-            --log '${{ inputs.log }}')
+            --log '${{ inputs.log }}' \
+            > ./overmindtech/change-url
 
-        echo "change-url=$url" >> $GITHUB_OUTPUT
+        echo "ticket-link=${{ github.event.pull_request.html_url }}" >> $GITHUB_OUTPUT
+        echo "${{ github.event.pull_request.html_url }}" >> ./overmindtech/ticket-link
+        echo "change-url=$(< ./overmindtech/change-url)" >> $GITHUB_OUTPUT
+
+        ./overmindtech/ovm-cli get-change \
+          --change "$(< ./overmindtech/change-url)" \
+          --format markdown \
+          --log '${{ inputs.log }}' \
+          > ./overmindtech/message
+
+        DELIMITER="$(uuidgen)"
+        echo "message<<$DELIMITER" >> $GITHUB_OUTPUT
+        cat ./overmindtech/message >> $GITHUB_OUTPUT
+        echo "$DELIMITER" >> $GITHUB_OUTPUT
 
     - name: Post change url as sticky comment
       uses: marocchino/sticky-pull-request-comment@v2
       if: ${{ steps.submit-plan.outputs.change-url != '' }}
       with:
         header: change
-        message: |
-          See the blast radius of your planned changes at [Overmind](${{ steps.submit-plan.outputs.change-url }})
+        message: ${{ steps.submit-plan.outputs.message }}
+
+    - name: Upload change-url as file
+      uses: actions/upload-artifact@v3
+      with:
+        name: overmind-change-url.txt
+        path: ./overmindtech/change-url
+
+    - name: Upload ticket-link as file
+      uses: actions/upload-artifact@v3
+      with:
+        name: overmind-ticket-link.txt
+        path: ./overmindtech/ticket-link
