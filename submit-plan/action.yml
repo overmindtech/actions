@@ -52,7 +52,7 @@ runs:
             --description 'This change was automatically created from a PR' \
             --ticket-link '${{ github.event.pull_request.html_url }}' \
             --plan-json '${{ inputs.plan-json }}' \
-            --log '${{ inputs.log }}') \
+            --log '${{ inputs.log }}' \
             > ./overmindtech/change-url
 
         echo "ticket-link=${{ github.event.pull_request.html_url }}" >> $GITHUB_OUTPUT
