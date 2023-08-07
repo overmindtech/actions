@@ -45,7 +45,10 @@ runs:
           description='This change was automatically created from a PR'
           ticket_link='${{ github.event.pull_request.html_url }}'
         else
-          title="$(jq -r .pull_request.title < ${{github.event_path}} )"
+          title="Deploying from $(git describe --all --long) by ${{ github.actor }}"
+          if [ "${{ github.triggering_actor }}" != "${{ github.actor }}"]; then
+            title="$title (triggered by ${{ github.triggering_actor }})"
+          fi
           description='This change was automatically created from Github Actions'
           ticket_link='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
         fi
