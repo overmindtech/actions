@@ -58,9 +58,14 @@ jobs:
           path: testmodule/tfplan.json
 
       - uses: ./submit-plan
-        id: submit-plan
-        # will need manual checking that the assertion fails on push events
-        continue-on-error: ${{ github.event_name != 'pull_request' }}
         with:
           ovm-api-key: ${{ secrets.OVM_TOKEN }}
           plan-json: ./testmodule/tfplan.json
+
+      - uses: ./start-change
+        with:
+          ovm-api-key: ${{ secrets.OVM_TOKEN }}
+
+      - uses: ./end-change
+        with:
+          ovm-api-key: ${{ secrets.OVM_TOKEN }}

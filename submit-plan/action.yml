@@ -32,13 +32,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Require to run in a PR
-      shell: bash
-      if: ${{ github.event_name != 'pull_request' }}
-      run: |
-        echo "::error ::Need to run as pull_request, not '${{ github.event_name }}'"
-        exit 1
-
     - name: Create a Change from a terraform plan
       id: submit-plan
       shell: bash
@@ -47,10 +40,20 @@ runs:
       run: |
         set -xe
 
+        if [ ${{ github.event_name }} -eq pull_request ]; then
+          title="$(jq -r .pull_request.title < ${{github.event_path}} )"
+          description='This change was automatically created from a PR'
+          ticket_link='${{ github.event.pull_request.html_url }}'
+        else
+          title="$(jq -r .pull_request.title < ${{github.event_path}} )"
+          description='This change was automatically created from Github Actions'
+          ticket_link='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+        fi
+
         ./overmindtech/ovm-cli submit-plan \
-            --title "$(jq -r .pull_request.title < ${{github.event_path}} )" \
-            --description 'This change was automatically created from a PR' \
-            --ticket-link '${{ github.event.pull_request.html_url }}' \
+            --title "$title" \
+            --description "$description" \
+            --ticket-link "$ticket_link" \
             --plan-json '${{ inputs.plan-json }}' \
             --log '${{ inputs.log }}' \
             > ./overmindtech/change-url
