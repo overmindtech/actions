@@ -40,7 +40,7 @@ runs:
       run: |
         set -xe
 
-        if [ ${{ github.event_name }} -eq pull_request ]; then
+        if [ ${{ github.event_name }} = pull_request ]; then
           title="$(jq -r .pull_request.title < ${{github.event_path}} )"
           description='This change was automatically created from a PR'
           ticket_link='${{ github.event.pull_request.html_url }}'
