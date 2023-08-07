@@ -27,6 +27,12 @@ runs:
       run: |
         set -xe
 
+        if [ ${{ github.event_name }} -eq pull_request ]; then
+          ticket_link='${{ github.event.pull_request.html_url }}'
+        else
+          ticket_link='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+        fi
+
         ./overmindtech/ovm-cli end-change \
-            --ticket-link '${{ github.event.pull_request.html_url }}' \
+            --ticket-link "$ticket_link" \
             --log '${{ inputs.log }}'
