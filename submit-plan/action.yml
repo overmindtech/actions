@@ -48,7 +48,7 @@ runs:
         set -xe
 
         ./overmindtech/ovm-cli submit-plan \
-            --title '${{ github.event.pull_request.title }}' \
+            --title "$(jq .pull_request.title < ${{github.event_path}} )" \
             --description 'This change was automatically created from a PR' \
             --ticket-link '${{ github.event.pull_request.html_url }}' \
             --plan-json '${{ inputs.plan-json }}' \
