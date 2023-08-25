@@ -8,14 +8,14 @@ description: |
 
   Use the `overmindtech/actions/install` action to install the CLI before this.
 
-  This action requires the location of the results of `terraform show -json $TFPLAN_FILE` passed in as `plan-json`.
+  This action requires one or more locations of the results of `terraform show -json $TFPLAN_FILE` passed in as `plan-json`. Due to limitations of GitHub Actions, this is a space-separated list, _not_ a YAML array.
 
   By default this uses the calling PR as Ticket Link for the new Change.
 inputs:
   ovm-api-key:
     description: Pass in an overmind token to give access to your account on Overmind
   plan-json:
-    description: The location of the terraform plan file (generated from `terraform plan -out=...` and `terraform show -json ...`; defaults to `tfplan.json`)
+    description: The location of the terraform plan file (generated from `terraform plan -out=...` and `terraform show -json ...`; defaults to `tfplan.json`). Due to limitations of GitHub Actions, this is a space-separated list, _not_ a YAML array.
     default: tfplan.json
   log:
     description: The log level for the job
@@ -57,8 +57,8 @@ runs:
             --title "$title" \
             --description "$description" \
             --ticket-link "$ticket_link" \
-            --plan-json '${{ inputs.plan-json }}' \
             --log '${{ inputs.log }}' \
+            ${{ inputs.plan-json }} \
             > ./overmindtech/change-url
 
         echo "ticket-link=${{ github.event.pull_request.html_url }}" >> $GITHUB_OUTPUT
