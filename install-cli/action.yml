@@ -23,7 +23,7 @@ runs:
       uses: robinraju/release-downloader@v1.8
       with:
         repository: overmindtech/ovm-cli
-        fileName: "ovm-cli_Linux_x86_64.tar.gz"
+        fileName: "ovm-cli_*Linux_x86_64.tar.gz"
         tarBall: true
         extract: true
         latest: ${{ inputs.version == 'latest' }}
