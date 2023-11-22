@@ -40,7 +40,7 @@ The `submit-plan` action takes a JSON-formatted terraform plan, creates a Overmi
 - uses: overmindtech/actions/submit-plan@main
   id: submit-plan
   with:
-    ovm-api-key: ${{ secrets.OVM_TOKEN }} # Generated within Overmind
+    ovm-api-key: ${{ secrets.OVM_API_KEY }} # Generated within Overmind
     plan-json: ./tfplan.json # Location of the plan in JSON format
 ```
 
@@ -93,9 +93,19 @@ jobs:
       - uses: overmindtech/actions/submit-plan@main
         id: submit-plan
         with:
-          ovm-api-key: ${{ secrets.OVM_TOKEN }}
+          ovm-api-key: ${{ secrets.OVM_API_KEY }}
           plan-json: ./tfplan.json
 ```
+
+## Creating an API Key
+
+To create an API key to use with this action go to [Account Settings > API Keys](https://app.overmind.tech/changes?settings=1&activeTab=api-keys) and click "New API Key".
+
+![api keys auth window](./doc/api_keys.png)
+
+Give the key a name e.g. "Github Actions" and select the `changes:write` permission and click "Confirm". This will create the API key and authorize it. The key should then display as "Ready" in the UI.
+
+You can then copy the API key and [create a secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository) called `OVM_API_KEY` in Github Actions. The action will now be ready to use.
 
 # Development
 
