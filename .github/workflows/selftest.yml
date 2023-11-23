@@ -40,7 +40,7 @@ jobs:
           set -ex
           cd ./testmodule
           terraform init
-          terraform plan -out=tfplan
+          terraform plan -out=tfplan | tee terraform_log
           terraform show -json tfplan > tfplan.json
 
       - name: Upload Example GitHub Data
@@ -61,6 +61,7 @@ jobs:
         with:
           ovm-api-key: ${{ secrets.OVM_TOKEN }}
           plan-json: ./testmodule/tfplan.json
+          plan-output: ./testmodule/terraform_log
 
       - uses: ./start-change
         with:

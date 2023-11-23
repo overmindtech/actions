@@ -17,6 +17,9 @@ inputs:
   plan-json:
     description: The location of the terraform plan file (generated from `terraform plan -out=...` and `terraform show -json ...`; defaults to `tfplan.json`). Due to limitations of GitHub Actions, this is a space-separated list, _not_ a YAML array.
     default: tfplan.json
+  plan-output:
+    description: The location of the terraform plan rendered output (generated from `terraform plan | tee FILE`; defaults to `tfplan.output`).
+    default: tfplan.output
   log:
     description: The log level for the job
     default: info
@@ -40,6 +43,27 @@ runs:
       run: |
         set -xe
 
+        # figure out the git change in this event
+        if [ ${{ github.event_name }} = pull_request ]; then
+          base="$(jq -r .pull_request.base.sha < ${{github.event_path}} )"
+          head="$(jq -r .pull_request.head.sha < ${{github.event_path}} )"
+          code_changes_arg="--code-changes-diff ./overmindtech/code-changes.diff"
+        elif [ ${{ github.event_name }} = push ]; then
+          base="$(jq -r .before < ${{github.event_path}} )"
+          head="$(jq -r .after < ${{github.event_path}} )"
+          code_changes_arg="--code-changes-diff ./overmindtech/code-changes.diff"
+        fi
+
+        if [ -n "$code_changes_arg" ]; then
+          git fetch --depth=1 origin $base
+          git fetch --depth=1 origin $head
+          git diff $base $head > ./overmindtech/code-changes.diff
+        fi
+
+        if [ -f ${{ inputs.plan-output }} ]; then
+          tf_plan_output_arg="--terraform-plan-output ${{ inputs.plan-output }}"
+        fi
+
         if [ ${{ github.event_name }} = pull_request ]; then
           title="$(jq -r .pull_request.title < ${{github.event_path}} )"
           description='This change was automatically created from a PR'
@@ -57,6 +81,8 @@ runs:
             --title "$title" \
             --description "$description" \
             --ticket-link "$ticket_link" \
+            $code_changes_arg \
+            $tf_plan_output_arg \
             --log '${{ inputs.log }}' \
             ${{ inputs.plan-json }} \
             > ./overmindtech/change-url
