@@ -4,7 +4,7 @@ Use [Overmind](https://overmind.tech/) to calculate the blast radius of your Ter
 
 <details>
   <summary>Not using GitHub?</summary>
-  
+
   Currently we only have an action for GitHub, but don't fear! We have a CLI that you can use to integrate your own CI tooling:
 
   1. Download the CLI from here: https://github.com/overmindtech/ovm-cli/releases
@@ -65,10 +65,10 @@ jobs:
 
     steps:
       # Checkout your code
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Set up Terraform
-      - uses: hashicorp/setup-terraform@v2
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
       - name: Terraform Init
@@ -95,6 +95,7 @@ jobs:
         with:
           ovm-api-key: ${{ secrets.OVM_API_KEY }}
           plan-json: ./tfplan.json
+          plan-output: ./terraform_log
 ```
 
 ## Creating an API Key
