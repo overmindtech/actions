@@ -50,6 +50,20 @@ runs:
           code_changes_arg="--code-changes-diff ./overmindtech/code-changes.diff"
         elif [ ${{ github.event_name }} = push ]; then
           base="$(jq -r .before < ${{github.event_path}} )"
+          if [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            # new branch was pushed, default to the repo's default branch as
+            # base for the diff
+            #
+            # Note that this is only the second-least-worst choice here, as this
+            # will show that's on the default branch, but not in this push as
+            # getting removed, even though a merge would keep it. To avoid
+            # _that_, we'd need to use the `merge-base` between the default
+            # branch and the current branch, but that would inversely _hide_
+            # changes that are on the default branch but not in this push,
+            # making it easier to miss things for folks with a push-based
+            # workflow.
+            base="${{github.repository.default_branch}}"
+          fi
           head="$(jq -r .after < ${{github.event_path}} )"
           code_changes_arg="--code-changes-diff ./overmindtech/code-changes.diff"
         fi
