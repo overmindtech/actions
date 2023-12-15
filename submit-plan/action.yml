@@ -124,13 +124,13 @@ runs:
         message: ${{ steps.submit-plan.outputs.message }}
 
     - name: Upload change-url as file
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: overmind-change-url.txt
         path: ./overmindtech/change-url
 
     - name: Upload ticket-link as file
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: overmind-ticket-link.txt
         path: ./overmindtech/ticket-link
