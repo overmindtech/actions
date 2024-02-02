@@ -20,7 +20,7 @@ runs:
   using: composite
   steps:
     - name: Install Overmind CLI
-      uses: robinraju/release-downloader@v1.8
+      uses: robinraju/release-downloader@v1.9
       with:
         repository: overmindtech/ovm-cli
         fileName: "ovm-cli_*Linux_x86_64.tar.gz"
