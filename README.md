@@ -1,15 +1,12 @@
-p align="center">
+<p align="center">
   <picture width="260px" align="center">
       <source media="(prefers-color-scheme: dark)" srcset="https://assets-global.website-files.com/6241e92445c21f9c1245a940/6582c2b96d741b023f1afabf_ov-lite-icon-p-500.png">
       <img alt="Overmind" src="https://assets-global.website-files.com/6241e92445c21f9c1245a940/6582c2b96d741b023f1afabf_ov-lite-icon-p-500.png" width="260px" align="center">
     </picture>
-  <h1 align="center">Overmind Action</h1>
+  <h1 align="center">Overmind Actions</h1>
   <p align="center">
      <a href="https://overmind.tech">https://overmind.tech</a> 
     <br/>
-This example repo shows how to run terraform on GitHub Actions and automatically submit each PR's changes to [Overmind](https://overmind.tech), reporting back the blast radius as a comment on the PR. You can see that in action in [this PR](https://github.com/overmindtech/terraform-example/pull/57).
-
-<br/>
   </p>
 </p>
 <br/>
@@ -22,9 +19,7 @@ This example repo shows how to run terraform on GitHub Actions and automatically
   <a href="https://vimeo.com/903381683">🎥 Watch a demo</a> | <a href="https://overmind.tech/how-it-work">📖 How it works</a> | <a href="https://app.overmind.tech/api/auth/signup">🚀 Sign up</a> | <a href="https://app.overmind.tech/playground">💻 Playground</a> | <a href="https://www.linkedin.com/company/overmindtech/">🙌 Follow us</a>
 </p>
 
-# Overmind Actions
-
-Use [Overmind](https://overmind.tech/) to calculate the blast radius of your Terraform pull requests.
+Use this GitHub Action to automatically submit each PR's changes to [Overmind](https://overmind.tech), reporting back the blast radius as a comment on the PR. You can see that in action in [this PR](https://github.com/overmindtech/terraform-example/pull/57).
 
 <details>
   <summary>Not using GitHub?</summary>
