@@ -38,6 +38,7 @@ Use this GitHub Action to automatically submit each PR's changes to [Overmind](h
     --plan-json 'path/to/plan.json'
   ```
 </details>
+</br>
 
 ![Example Overmind report showing the expected changes and timeline for the example PR](https://github.com/overmindtech/terraform-example/blob/6d7240aec15b0992901fabe56be25c789b636cbb/assets/overmind%20risk%20.gif)
 
