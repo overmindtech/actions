@@ -22,8 +22,8 @@ runs:
     - name: Install Overmind CLI
       uses: robinraju/release-downloader@v1.9
       with:
-        repository: overmindtech/ovm-cli
-        fileName: "ovm-cli_*Linux_x86_64.tar.gz"
+        repository: overmindtech/cli
+        fileName: "overmind_cli_*Linux_x86_64.tar.gz"
         tarBall: true
         extract: true
         latest: ${{ inputs.version == 'latest' }}
@@ -34,4 +34,4 @@ runs:
 
     - name: Installed version
       shell: bash
-      run: ./overmindtech/ovm-cli --version
+      run: ./overmindtech/overmind --version

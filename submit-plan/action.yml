@@ -91,7 +91,7 @@ runs:
           ticket_link='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
         fi
 
-        ./overmindtech/ovm-cli submit-plan \
+        ./overmindtech/overmind changes submit-plan \
             --title "$title" \
             --description "$description" \
             --ticket-link "$ticket_link" \
@@ -105,7 +105,7 @@ runs:
         echo "${{ github.event.pull_request.html_url }}" >> ./overmindtech/ticket-link
         echo "change-url=$(< ./overmindtech/change-url)" >> $GITHUB_OUTPUT
 
-        ./overmindtech/ovm-cli get-change \
+        ./overmindtech/overmind changes get-change \
           --change "$(< ./overmindtech/change-url)" \
           --format markdown \
           --log '${{ inputs.log }}' \

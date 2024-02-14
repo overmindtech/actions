@@ -26,12 +26,12 @@ Use this GitHub Action to automatically submit each PR's changes to [Overmind](h
 
   Currently we only have an action for GitHub, but don't fear! We have a CLI that you can use to integrate your own CI tooling:
 
-  1. Download the CLI from here: https://github.com/overmindtech/ovm-cli/releases
+  1. Download the CLI from here: https://github.com/overmindtech/cli/releases
   2. Set the `OVM_API_KEY` environment variable to your API Key
   3. Add a step to your pipeline to create a change:
 
   ```
-  ./ovm-cli submit-plan \
+  ./overmind changes submit-plan \
     --title 'Pull request title goes here' \
     --description 'PR description goes here' \
     --ticket-link 'link to PR goes here' \
@@ -44,7 +44,7 @@ Use this GitHub Action to automatically submit each PR's changes to [Overmind](h
 
 # Usage
 
-The `install` action installs the [`ovm-cli`](https://github.com/overmindtech/ovm-cli).
+The `install` action installs the [`overmind`](https://github.com/overmindtech/cli) CLI.
 
 ```yaml
 - uses: overmindtech/actions/install-cli@main

@@ -33,6 +33,6 @@ runs:
           ticket_link='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
         fi
 
-        ./overmindtech/ovm-cli end-change \
+        ./overmindtech/overmind changes end-change \
             --ticket-link "$ticket_link" \
             --log '${{ inputs.log }}'
