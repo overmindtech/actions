@@ -21,8 +21,8 @@ jobs:
       - name: test cli install
         run: |
           set -ex
-          ./overmindtech/ovm-cli --version
-          ./overmindtech/ovm-cli --help
+          ./overmindtech/overmind --version
+          ./overmindtech/overmind --help
 
       - name: Cache Terraform Providers
         id: cache-terraform
