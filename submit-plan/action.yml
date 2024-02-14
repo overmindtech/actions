@@ -1,18 +1,25 @@
 name: Submit Terraform plan to Overmind
+author: https://overmind.tech
+branding:
+  color: purple
+  icon: upload-cloud
 description: |
   Uses the Overmind CLI to submit a terraform plan as a new Change to the Overmind API. Results will be posted as a comment on the PR.
 
   Use the `overmindtech/actions/install` action to install the CLI before this.
 
-  This action requires the location of the results of `terraform show -json $TFPLAN_FILE` passed in as `plan-json`.
+  This action requires one or more locations of the results of `terraform show -json $TFPLAN_FILE` passed in as `plan-json`. Due to limitations of GitHub Actions, this is a space-separated list, _not_ a YAML array.
 
   By default this uses the calling PR as Ticket Link for the new Change.
 inputs:
   ovm-api-key:
     description: Pass in an overmind token to give access to your account on Overmind
   plan-json:
-    description: The location of the terraform plan file (generated from `terraform plan -out=...` and `terraform show -json ...`; defaults to `tfplan.json`)
+    description: The location of the terraform plan file (generated from `terraform plan -out=...` and `terraform show -json ...`; defaults to `tfplan.json`). Due to limitations of GitHub Actions, this is a space-separated list, _not_ a YAML array.
     default: tfplan.json
+  plan-output:
+    description: The location of the terraform plan rendered output (generated from `terraform plan | tee FILE`; defaults to `tfplan.output`).
+    default: tfplan.output
   log:
     description: The log level for the job
     default: info
@@ -28,13 +35,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Require to run in a PR
-      shell: bash
-      if: ${{ github.event_name != 'pull_request' }}
-      run: |
-        echo "::error ::Need to run as pull_request, not '${{ github.event_name }}'"
-        exit 1
-
     - name: Create a Change from a terraform plan
       id: submit-plan
       shell: bash
@@ -43,19 +43,69 @@ runs:
       run: |
         set -xe
 
-        ./overmindtech/ovm-cli submit-plan \
-            --title '${{ github.event.pull_request.title }}' \
-            --description 'This change was automatically created from a PR' \
-            --ticket-link '${{ github.event.pull_request.html_url }}' \
-            --plan-json '${{ inputs.plan-json }}' \
+        # figure out the git change in this event
+        if [ ${{ github.event_name }} = pull_request ]; then
+          base="$(jq -r .pull_request.base.sha < ${{github.event_path}} )"
+          head="$(jq -r .pull_request.head.sha < ${{github.event_path}} )"
+          code_changes_arg="--code-changes-diff ./overmindtech/code-changes.diff"
+        elif [ ${{ github.event_name }} = push ]; then
+          base="$(jq -r .before < ${{github.event_path}} )"
+          if [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            # new branch was pushed, default to the repo's default branch as
+            # base for the diff
+            #
+            # Note that this is only the second-least-worst choice here, as this
+            # will show that's on the default branch, but not in this push as
+            # getting removed, even though a merge would keep it. To avoid
+            # _that_, we'd need to use the `merge-base` between the default
+            # branch and the current branch, but that would inversely _hide_
+            # changes that are on the default branch but not in this push,
+            # making it easier to miss things for folks with a push-based
+            # workflow.
+            base="${{github.repository.default_branch}}"
+          fi
+          head="$(jq -r .after < ${{github.event_path}} )"
+          code_changes_arg="--code-changes-diff ./overmindtech/code-changes.diff"
+        fi
+
+        if [ -n "$code_changes_arg" ]; then
+          git fetch --depth=1 origin $base
+          git fetch --depth=1 origin $head
+          git diff $base $head > ./overmindtech/code-changes.diff
+        fi
+
+        if [ -f ${{ inputs.plan-output }} ]; then
+          tf_plan_output_arg="--terraform-plan-output ${{ inputs.plan-output }}"
+        fi
+
+        if [ ${{ github.event_name }} = pull_request ]; then
+          title="$(jq -r .pull_request.title < ${{github.event_path}} )"
+          description='This change was automatically created from a PR'
+          ticket_link='${{ github.event.pull_request.html_url }}'
+        else
+          title="Deploying from $(git describe --all --long) by ${{ github.actor }}"
+          if [ "${{ github.triggering_actor }}" != "${{ github.actor }}"]; then
+            title="$title (triggered by ${{ github.triggering_actor }})"
+          fi
+          description='This change was automatically created from Github Actions'
+          ticket_link='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+        fi
+
+        ./overmindtech/overmind changes submit-plan \
+            --title "$title" \
+            --description "$description" \
+            --ticket-link "$ticket_link" \
+            $code_changes_arg \
+            $tf_plan_output_arg \
             --log '${{ inputs.log }}' \
+            ${{ inputs.plan-json }} \
             > ./overmindtech/change-url
 
         echo "ticket-link=${{ github.event.pull_request.html_url }}" >> $GITHUB_OUTPUT
         echo "${{ github.event.pull_request.html_url }}" >> ./overmindtech/ticket-link
         echo "change-url=$(< ./overmindtech/change-url)" >> $GITHUB_OUTPUT
 
-        ./overmindtech/ovm-cli get-change \
+        ./overmindtech/overmind changes get-change \
           --change "$(< ./overmindtech/change-url)" \
           --format markdown \
           --log '${{ inputs.log }}' \
@@ -74,13 +124,13 @@ runs:
         message: ${{ steps.submit-plan.outputs.message }}
 
     - name: Upload change-url as file
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: overmind-change-url.txt
         path: ./overmindtech/change-url
 
     - name: Upload ticket-link as file
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: overmind-ticket-link.txt
         path: ./overmindtech/ticket-link
