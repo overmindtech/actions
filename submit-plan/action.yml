@@ -23,6 +23,9 @@ inputs:
   log:
     description: The log level for the job
     default: info
+  fetch-change:
+    description: Whether or not to fetch the change after submitting it. Set this to 'false' to avoid waiting for risk calculation when no human review is required.
+    default: true
 outputs:
   change-url:
     description: "The URL of the created change"
@@ -105,20 +108,22 @@ runs:
         echo "${{ github.event.pull_request.html_url }}" >> ./overmindtech/ticket-link
         echo "change-url=$(< ./overmindtech/change-url)" >> $GITHUB_OUTPUT
 
-        ./overmindtech/overmind changes get-change \
-          --change "$(< ./overmindtech/change-url)" \
-          --format markdown \
-          --log '${{ inputs.log }}' \
-          > ./overmindtech/message
+        if [ ${{ inputs.fetch-change }} != "false" ]; then
+          ./overmindtech/overmind changes get-change \
+            --change "$(< ./overmindtech/change-url)" \
+            --format markdown \
+            --log '${{ inputs.log }}' \
+            > ./overmindtech/message
 
-        DELIMITER="$(uuidgen)"
-        echo "message<<$DELIMITER" >> $GITHUB_OUTPUT
-        cat ./overmindtech/message >> $GITHUB_OUTPUT
-        echo "$DELIMITER" >> $GITHUB_OUTPUT
+          DELIMITER="$(uuidgen)"
+          echo "message<<$DELIMITER" >> $GITHUB_OUTPUT
+          cat ./overmindtech/message >> $GITHUB_OUTPUT
+          echo "$DELIMITER" >> $GITHUB_OUTPUT
+        fi
 
-    - name: Post change url as sticky comment
+    - name: Post change message as sticky comment
       uses: marocchino/sticky-pull-request-comment@v2
-      if: ${{ steps.submit-plan.outputs.change-url != '' }}
+      if: ${{ steps.submit-plan.outputs.change-url != '' && inputs.fetch-change != 'false' }}
       with:
         header: change
         message: ${{ steps.submit-plan.outputs.message }}
