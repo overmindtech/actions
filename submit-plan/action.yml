@@ -26,6 +26,10 @@ inputs:
   fetch-change:
     description: Whether or not to fetch the change after submitting it. Set this to 'false' to avoid waiting for risk calculation when no human review is required.
     default: true
+  number:
+    description: "Pull request number to report results back."
+    default: ${{ github.event.number }}
+
 outputs:
   change-url:
     description: "The URL of the created change"
@@ -127,6 +131,7 @@ runs:
       with:
         header: change
         message: ${{ steps.submit-plan.outputs.message }}
+        number: ${{ inputs.number }}
 
     - name: Upload change-url as file
       uses: actions/upload-artifact@v4
