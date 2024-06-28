@@ -20,7 +20,7 @@ runs:
   using: composite
   steps:
     - name: Install Overmind CLI
-      uses: robinraju/release-downloader@v1.10
+      uses: robinraju/release-downloader@v1.11
       with:
         repository: overmindtech/cli
         fileName: "overmind_cli_*Linux_x86_64.tar.gz"
