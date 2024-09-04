@@ -13,7 +13,7 @@ description: |
   By default this uses the calling PR as Ticket Link for the new Change.
 inputs:
   ovm-api-key:
-    description: Pass in an overmind token to give access to your account on Overmind
+    description: Pass in an Overmind token to give access to your account on Overmind
   plan-json:
     description: The location of the terraform plan file (generated from `terraform plan -out=...` and `terraform show -json ...`; defaults to `tfplan.json`). Due to limitations of GitHub Actions, this is a space-separated list, _not_ a YAML array.
     default: tfplan.json
@@ -29,6 +29,9 @@ inputs:
   number:
     description: "Pull request number to report results back."
     default: ${{ github.event.number }}
+  app:
+    description: "The Overmind instance to connect to. Defaults to `https://app.overmind.tech`"
+    required: false
 
 outputs:
   change-url:
@@ -98,6 +101,10 @@ runs:
           ticket_link='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
         fi
 
+        if [ -n "${{ inputs.app }}" ]; then
+          app_arg="--app ${{ inputs.app }}"
+        fi
+
         ./overmindtech/overmind changes submit-plan \
             --title "$title" \
             --description "$description" \
@@ -105,6 +112,7 @@ runs:
             $code_changes_arg \
             $tf_plan_output_arg \
             --log '${{ inputs.log }}' \
+            $app_arg \
             ${{ inputs.plan-json }} \
             > ./overmindtech/change-url
 
@@ -117,6 +125,7 @@ runs:
             --change "$(< ./overmindtech/change-url)" \
             --format markdown \
             --log '${{ inputs.log }}' \
+            $app_arg \
             > ./overmindtech/message
 
           DELIMITER="$(uuidgen)"
