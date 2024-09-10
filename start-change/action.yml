@@ -11,10 +11,13 @@ description: |
   By default this uses the calling PR as Ticket Link to work out which Change to start.
 inputs:
   ovm-api-key:
-    description: Pass in an overmind token to give access to your account on Overmind
+    description: Pass in an Overmind token to give access to your account on Overmind
   log:
     description: The log level for the job
     default: info
+  app:
+    description: "The Overmind instance to connect to. Defaults to `https://app.overmind.tech`"
+    required: false
 
 runs:
   using: composite
@@ -33,6 +36,11 @@ runs:
           ticket_link='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
         fi
 
+        if [ -n "${{ inputs.app }}" ]; then
+          app_arg="--app ${{ inputs.app }}"
+        fi
+
         ./overmindtech/overmind changes start-change \
             --ticket-link "$ticket_link" \
-            --log '${{ inputs.log }}'
+            --log '${{ inputs.log }}' \
+            $app_arg
