@@ -5,7 +5,7 @@
     </picture>
   <h1 align="center">Overmind Actions</h1>
   <p align="center">
-     <a href="https://overmind.tech">https://overmind.tech</a> 
+     <a href="https://overmind.tech">https://overmind.tech</a>
     <br/>
   </p>
 </p>
@@ -30,7 +30,7 @@ Use this GitHub Action to automatically submit each PR's changes to [Overmind](h
   2. Set the `OVM_API_KEY` environment variable to your API Key
   3. Add a step to your pipeline to create a change:
 
-  ```
+  ```shell
   ./overmind changes submit-plan \
     --title 'Pull request title goes here' \
     --description 'PR description goes here' \
@@ -132,7 +132,7 @@ You can then copy the API key and [create a secret](https://docs.github.com/en/a
 
 Install [nektos/act](https://github.com/nektos/act) and run
 
-```
+```shell
 gh act pull_request -s GITHUB_TOKEN="$(gh auth token)" -s OVM_API_KEY="${OVM_API_KEY}"
 ```
 
