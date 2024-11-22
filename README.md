@@ -26,7 +26,7 @@ Use this GitHub Action to automatically submit each PR's changes to [Overmind](h
 
   Currently we only have an action for GitHub, but don't fear! We have a CLI that you can use to integrate your own CI tooling:
 
-  1. Download the CLI from here: https://github.com/overmindtech/cli/releases
+  1. Download the CLI from here: <https://github.com/overmindtech/cli/releases>
   2. Set the `OVM_API_KEY` environment variable to your API Key
   3. Add a step to your pipeline to create a change:
 
@@ -37,6 +37,7 @@ Use this GitHub Action to automatically submit each PR's changes to [Overmind](h
     --ticket-link 'link to PR goes here' \
     --plan-json 'path/to/plan.json'
   ```
+
 </details>
 </br>
 
@@ -50,7 +51,7 @@ The `install` action installs the [`overmind`](https://github.com/overmindtech/c
 - uses: overmindtech/actions/install-cli@main
   with:
     version: latest # Request a specific version for install. Defaults to `latest`.
-    github-token: ${{ secrets.GITHUB_TOKEN }} # Avoid API limits (optional)
+    github-token: ${{ github.token }} # Avoid API limits
     github-api-url: https://ghe.company.com/api/v3 # API for GitHub Enterprise Server (optional)
 ```
 
@@ -108,6 +109,10 @@ jobs:
 
       # Install the Overmind CLI
       - uses: overmindtech/actions/install-cli@main
+        continue-on-error: true
+        with:
+          version: latest
+          github-token: ${{ github.token }}
 
       # Submit the plan. This will add a comment with the blast radius
       - uses: overmindtech/actions/submit-plan@main
