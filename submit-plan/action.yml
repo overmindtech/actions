@@ -92,7 +92,7 @@ runs:
         fi
 
         if [ -n "${{ inputs.tags }}" ]; then
-          tags_arg="--tags ${{ inputs.tags }}"
+          tags_arg="--tags '${{ inputs.tags }}'"
         fi
 
         if [ ${{ github.event_name }} = pull_request ]; then
