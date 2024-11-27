@@ -32,6 +32,9 @@ inputs:
   app:
     description: "The Overmind instance to connect to. Defaults to `https://app.overmind.tech`"
     required: false
+  tags:
+    description: "A comma separated list of key=value tags to attach to the change"
+    required: false
 
 outputs:
   change-url:
@@ -88,6 +91,10 @@ runs:
           tf_plan_output_arg="--terraform-plan-output ${{ inputs.plan-output }}"
         fi
 
+        if [ -n "${{ inputs.tags }}" ]; then
+          tags_arg="--tags ${{ inputs.tags }}"
+        fi
+
         if [ ${{ github.event_name }} = pull_request ]; then
           title="$(jq -r .pull_request.title < ${{github.event_path}} )"
           description='This change was automatically created from a PR'
@@ -111,6 +118,7 @@ runs:
             --ticket-link "$ticket_link" \
             $code_changes_arg \
             $tf_plan_output_arg \
+            $tags_arg \
             --log '${{ inputs.log }}' \
             $app_arg \
             ${{ inputs.plan-json }} \
