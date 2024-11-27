@@ -56,43 +56,45 @@ runs:
       run: |
         set -xe
 
+        declare -a args
+        declare -a chg_args
+
         # figure out the git change in this event
         if [ ${{ github.event_name }} = pull_request ]; then
           base="$(jq -r .pull_request.base.sha < ${{github.event_path}} )"
           head="$(jq -r .pull_request.head.sha < ${{github.event_path}} )"
-          code_changes_arg="--code-changes-diff ./overmindtech/code-changes.diff"
+          args+=("--code-changes-diff=./overmindtech/code-changes.diff")
         elif [ ${{ github.event_name }} = push ]; then
           base="$(jq -r .before < ${{github.event_path}} )"
           if [ "$base" = "0000000000000000000000000000000000000000" ]; then
             # new branch was pushed, default to the repo's default branch as
             # base for the diff
             #
-            # Note that this is only the second-least-worst choice here, as this
-            # will show that's on the default branch, but not in this push as
-            # getting removed, even though a merge would keep it. To avoid
-            # _that_, we'd need to use the `merge-base` between the default
-            # branch and the current branch, but that would inversely _hide_
-            # changes that are on the default branch but not in this push,
-            # making it easier to miss things for folks with a push-based
-            # workflow.
+            # Note that this is only the second-worst choice here, as this will
+            # show what's on the default branch, but not in this push as getting
+            # removed, even though a merge would keep it. To avoid _that_, we'd
+            # need to use the `merge-base` between the default branch and the
+            # current branch, but that would inversely _hide_ changes that are
+            # on the default branch but not in this push, making it easier to
+            # miss things for folks with a push-based workflow.
             base="${{github.repository.default_branch}}"
           fi
           head="$(jq -r .after < ${{github.event_path}} )"
-          code_changes_arg="--code-changes-diff ./overmindtech/code-changes.diff"
+          args+=("--code-changes-diff=./overmindtech/code-changes.diff")
         fi
 
         if [ -n "$code_changes_arg" ]; then
-          git fetch --depth=1 origin $base
-          git fetch --depth=1 origin $head
-          git diff $base $head > ./overmindtech/code-changes.diff
+          git fetch --depth=1 origin "$base"
+          git fetch --depth=1 origin "$head"
+          git diff "$base" "$head" > ./overmindtech/code-changes.diff
         fi
 
         if [ -f ${{ inputs.plan-output }} ]; then
-          tf_plan_output_arg="--terraform-plan-output ${{ inputs.plan-output }}"
+          args+=("--terraform-plan-output=${{ inputs.plan-output }}")
         fi
 
         if [ -n "${{ inputs.tags }}" ]; then
-          tags_arg="--tags ${{ inputs.tags }}"
+          args+=("--tags=${{ inputs.tags }}")
         fi
 
         if [ ${{ github.event_name }} = pull_request ]; then
@@ -109,19 +111,16 @@ runs:
         fi
 
         if [ -n "${{ inputs.app }}" ]; then
-          app_arg="--app ${{ inputs.app }}"
+          args+=("--app=${{ inputs.app }}")
+          chg_args+=("--app=${{ inputs.app }}")
         fi
 
         ./overmindtech/overmind changes submit-plan \
             --title "$title" \
             --description "$description" \
             --ticket-link "$ticket_link" \
-            $code_changes_arg \
-            $tf_plan_output_arg \
-            $tags_arg \
-            --log '${{ inputs.log }}' \
-            $app_arg \
-            ${{ inputs.plan-json }} \
+            "${args[@]}" \
+            '${{ inputs.plan-json }}' \
             > ./overmindtech/change-url
 
         echo "ticket-link=${{ github.event.pull_request.html_url }}" >> $GITHUB_OUTPUT
@@ -133,7 +132,7 @@ runs:
             --change "$(< ./overmindtech/change-url)" \
             --format markdown \
             --log '${{ inputs.log }}' \
-            $app_arg \
+            "${chg_args[@]}" \
             > ./overmindtech/message
 
           DELIMITER="$(uuidgen)"
