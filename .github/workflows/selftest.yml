@@ -62,6 +62,7 @@ jobs:
           ovm-api-key: ${{ secrets.OVM_TOKEN }}
           plan-json: ./testmodule/tfplan.json
           plan-output: ./testmodule/terraform_log
+          tags: foo=bar,spaces=are ok
 
       - uses: ./start-change
         with:
