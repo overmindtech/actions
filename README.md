@@ -121,6 +121,7 @@ jobs:
           ovm-api-key: ${{ secrets.OVM_API_KEY }}
           plan-json: ./tfplan.json
           plan-output: ./terraform_log
+          tags: 'environment=dev,application=example
 ```
 
 ## Creating an API Key
