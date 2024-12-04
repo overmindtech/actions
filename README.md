@@ -65,7 +65,7 @@ The `submit-plan` action takes a JSON-formatted terraform plan, creates a Overmi
     plan-json: ./tfplan.json # Location of the plan in JSON format
 ```
 
-## Complete example
+## Pre-Mortem Example
 
 Copy this workflow to `.github/workflows/overmind.yml` to run `terraform init`, `terraform plan` and submit the planned changes to Overmind.
 
@@ -92,10 +92,12 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
+
       - name: Terraform Init
         id: init
         shell: bash
-        run: terraform init -input=false
+        run: |
+          terraform init -input=false
 
       # Run Terraform plan. Note that these commands will allow terraform to
       # log nicely and also create a plan JSON file
@@ -126,19 +128,26 @@ jobs:
 
 ## Creating an API Key
 
-To create an API key to use with this action go to [Account Settings > API Keys](https://app.overmind.tech/changes?settings=1&activeTab=api-keys) and click "New API Key".
+To create an API key to use with this action go to [Account Settings > API Keys](https://app.overmind.tech/settings/api-keys) and click "New API Key".
 
 ![api keys auth window](./doc/api_keys.png)
 
-Give the key a name e.g. "Github Actions" and select the `changes:write` permission and click "Confirm". This will create the API key and authorize it. The key should then display as "Ready" in the UI.
+Give the key a name e.g. "Github Actions" and select the `account:read`, `changes:write`, `config:write`, `request:receive`, and `source:write` permissions and click "Confirm". This will create the API key and authorize it. The key should then display as "Ready" in the UI.
 
 You can then copy the API key and [create a secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository) called `OVM_API_KEY` in Github Actions. The action will now be ready to use.
 
+## Enterprise support
+
+For Enterprise customers, `submit-plan`, `start-change` and `end-change` actions support an `app:` key in the `with` section of the action.
+
 # Development
 
-Install [nektos/act](https://github.com/nektos/act) and run
+Install [nektos/act](https://github.com/nektos/act) with `gh extension install https://github.com/nektos/gh-act` and run
 
 ```shell
+# install act with: gh extension install https://github.com/nektos/gh-act
+# log into gh CLI with: gh auth login
+# the medium image works well for testing
 gh act pull_request -s GITHUB_TOKEN="$(gh auth token)" -s OVM_API_KEY="${OVM_API_KEY}"
 ```
 
