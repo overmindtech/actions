@@ -138,7 +138,17 @@ You can then copy the API key and [create a secret](https://docs.github.com/en/a
 
 ## Enterprise support
 
-For Enterprise customers, `submit-plan`, `start-change` and `end-change` actions support an `app:` key in the `with` section of the action.
+For Enterprise customers, `submit-plan`, `start-change` and `end-change` actions support an `app:` key in the `with` section of the action which allows you to target an on-prem instance of Overmind e.g.
+
+```yaml
+      - uses: overmindtech/actions/submit-plan@main
+        id: submit-plan
+        with:
+          ovm-api-key: ${{ secrets.OVM_API_KEY }}
+          plan-json: ./tfplan.json
+          plan-output: ./terraform_log
+          app: https://mycompany.overmind.tech
+```
 
 # Development
 
