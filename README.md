@@ -5,7 +5,7 @@
     </picture>
   <h1 align="center">Overmind Actions</h1>
   <p align="center">
-     <a href="https://overmind.tech">https://overmind.tech</a> 
+     <a href="https://overmind.tech">https://overmind.tech</a>
     <br/>
   </p>
 </p>
@@ -26,17 +26,18 @@ Use this GitHub Action to automatically submit each PR's changes to [Overmind](h
 
   Currently we only have an action for GitHub, but don't fear! We have a CLI that you can use to integrate your own CI tooling:
 
-  1. Download the CLI from here: https://github.com/overmindtech/cli/releases
+  1. Download the CLI from here: <https://github.com/overmindtech/cli/releases>
   2. Set the `OVM_API_KEY` environment variable to your API Key
   3. Add a step to your pipeline to create a change:
 
-  ```
+  ```shell
   ./overmind changes submit-plan \
     --title 'Pull request title goes here' \
     --description 'PR description goes here' \
     --ticket-link 'link to PR goes here' \
     --plan-json 'path/to/plan.json'
   ```
+
 </details>
 </br>
 
@@ -50,7 +51,7 @@ The `install` action installs the [`overmind`](https://github.com/overmindtech/c
 - uses: overmindtech/actions/install-cli@main
   with:
     version: latest # Request a specific version for install. Defaults to `latest`.
-    github-token: ${{ secrets.GITHUB_TOKEN }} # Avoid API limits (optional)
+    github-token: ${{ github.token }} # Avoid API limits
     github-api-url: https://ghe.company.com/api/v3 # API for GitHub Enterprise Server (optional)
 ```
 
@@ -64,7 +65,7 @@ The `submit-plan` action takes a JSON-formatted terraform plan, creates a Overmi
     plan-json: ./tfplan.json # Location of the plan in JSON format
 ```
 
-## Complete example
+## Pre-Mortem Example
 
 Copy this workflow to `.github/workflows/overmind.yml` to run `terraform init`, `terraform plan` and submit the planned changes to Overmind.
 
@@ -91,10 +92,12 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
+
       - name: Terraform Init
         id: init
         shell: bash
-        run: terraform init -input=false
+        run: |
+          terraform init -input=false
 
       # Run Terraform plan. Note that these commands will allow terraform to
       # log nicely and also create a plan JSON file
@@ -108,6 +111,10 @@ jobs:
 
       # Install the Overmind CLI
       - uses: overmindtech/actions/install-cli@main
+        continue-on-error: true
+        with:
+          version: latest
+          github-token: ${{ github.token }}
 
       # Submit the plan. This will add a comment with the blast radius
       - uses: overmindtech/actions/submit-plan@main
@@ -116,23 +123,41 @@ jobs:
           ovm-api-key: ${{ secrets.OVM_API_KEY }}
           plan-json: ./tfplan.json
           plan-output: ./terraform_log
+          tags: 'environment=dev,application=example
 ```
 
 ## Creating an API Key
 
-To create an API key to use with this action go to [Account Settings > API Keys](https://app.overmind.tech/changes?settings=1&activeTab=api-keys) and click "New API Key".
+To create an API key to use with this action go to [Account Settings > API Keys](https://app.overmind.tech/settings/api-keys) and click "New API Key".
 
 ![api keys auth window](./doc/api_keys.png)
 
-Give the key a name e.g. "Github Actions" and select the `changes:write` permission and click "Confirm". This will create the API key and authorize it. The key should then display as "Ready" in the UI.
+Give the key a name e.g. "Github Actions" and select the `account:read`, `changes:write`, `config:write`, `request:receive`, and `source:write` permissions and click "Confirm". This will create the API key and authorize it. The key should then display as "Ready" in the UI.
 
 You can then copy the API key and [create a secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository) called `OVM_API_KEY` in Github Actions. The action will now be ready to use.
 
+## Enterprise support
+
+For Enterprise customers, `submit-plan`, `start-change` and `end-change` actions support an `app:` key in the `with` section of the action which allows you to target an on-prem instance of Overmind e.g.
+
+```yaml
+      - uses: overmindtech/actions/submit-plan@main
+        id: submit-plan
+        with:
+          ovm-api-key: ${{ secrets.OVM_API_KEY }}
+          plan-json: ./tfplan.json
+          plan-output: ./terraform_log
+          app: https://mycompany.overmind.tech
+```
+
 # Development
 
-Install [nektos/act](https://github.com/nektos/act) and run
+Install [nektos/act](https://github.com/nektos/act) with `gh extension install https://github.com/nektos/gh-act` and run
 
-```
+```shell
+# install act with: gh extension install https://github.com/nektos/gh-act
+# log into gh CLI with: gh auth login
+# the medium image works well for testing
 gh act pull_request -s GITHUB_TOKEN="$(gh auth token)" -s OVM_API_KEY="${OVM_API_KEY}"
 ```
 
