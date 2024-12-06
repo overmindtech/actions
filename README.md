@@ -152,13 +152,9 @@ For Enterprise customers, `submit-plan`, `start-change` and `end-change` actions
 
 # Development
 
-Install [nektos/act](https://github.com/nektos/act) with `gh extension install https://github.com/nektos/gh-act` and run
+To test out the `selftest` action, use the `act` tool to run it locally. That's much faster than commit/push.
 
-```shell
-# install act with: gh extension install https://github.com/nektos/gh-act
-# log into gh CLI with: gh auth login
-# the medium image works well for testing
-gh act pull_request -s GITHUB_TOKEN="$(gh auth token)" -s OVM_API_KEY="${OVM_API_KEY}"
-```
-
-to try out the `selftest` action locally. It's much faster than commit/push.
+* Install [nektos/act](https://github.com/nektos/act) with `gh extension install https://github.com/nektos/gh-act`
+* Set OVM_API_KEY in your environment to a valid API key
+* log into gh CLI with `gh auth login`
+* To test, run `gh act pull_request -s GITHUB_TOKEN="$(gh auth token)" -s OVM_TOKEN="${OVM_API_KEY}"` (use the Large image for the test)
