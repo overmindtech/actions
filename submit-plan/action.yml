@@ -35,10 +35,6 @@ inputs:
   tags:
     description: "A comma separated list of key=value tags to attach to the change"
     required: false
-  # ENG-1985, disabled until we decide how manual labels and manual tags should be handled.
-  # labels:
-  #   description: "A comma separated list of name=color labels to attach to the change"
-  #   required: false
 
 outputs:
   change-url:
@@ -81,19 +77,16 @@ runs:
             # current branch, but that would inversely _hide_ changes that are
             # on the default branch but not in this push, making it easier to
             # miss things for folks with a push-based workflow.
-            base="${{github.event.repository.default_branch}}"
-            prefix="origin/"
+            base="${{github.repository.default_branch}}"
           fi
           head="$(jq -r .after < ${{github.event_path}} )"
           args+=("--code-changes-diff=./overmindtech/code-changes.diff")
         fi
 
-        if [ -n "$base" ] && [ -n "$head" ]; then
+        if [ -n "$code_changes_arg" ]; then
           git fetch --depth=1 origin "$base"
           git fetch --depth=1 origin "$head"
-          git diff "$prefix$base" "$head" > ./overmindtech/code-changes.diff
-        else
-          echo "No base or head found, skipping code changes diff"
+          git diff "$base" "$head" > ./overmindtech/code-changes.diff
         fi
 
         if [ -f ${{ inputs.plan-output }} ]; then
@@ -104,18 +97,13 @@ runs:
           args+=("--tags=${{ inputs.tags }}")
         fi
 
-        # ENG-1985, disabled until we decide how manual labels and manual tags should be handled.
-        # if [ -n "${{ inputs.labels }}" ]; then
-        #   args+=("--labels=${{ inputs.labels }}")
-        # fi
-
         if [ ${{ github.event_name }} = pull_request ]; then
           title="$(jq -r .pull_request.title < ${{github.event_path}} )"
           description='This change was automatically created from a PR'
           ticket_link='${{ github.event.pull_request.html_url }}'
         else
           title="Deploying from $(git describe --all --long) by ${{ github.actor }}"
-          if [ "${{ github.triggering_actor }}" != "${{ github.actor }}" ]; then
+          if [ "${{ github.triggering_actor }}" != "${{ github.actor }}"]; then
             title="$title (triggered by ${{ github.triggering_actor }})"
           fi
           description='This change was automatically created from Github Actions'
@@ -162,13 +150,13 @@ runs:
         number: ${{ inputs.number }}
 
     - name: Upload change-url as file
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v4
       with:
         name: overmind-change-url.txt
         path: ./overmindtech/change-url
 
     - name: Upload ticket-link as file
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v4
       with:
         name: overmind-ticket-link.txt
         path: ./overmindtech/ticket-link
