@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="https://vimeo.com/903381683">🎥 Watch a demo</a> | <a href="https://overmind.tech/how-it-work">📖 How it works</a> | <a href="https://app.overmind.tech/api/auth/signup">🚀 Sign up</a> | <a href="https://www.linkedin.com/company/overmindtech/">🙌 Follow us</a>
+  <a href="https://www.youtube.com/watch?v=cr4Q0oLaANk">🎥 Watch a demo</a> | <a href="https://overmind.tech/how-it-work">📖 How it works</a> | <a href="https://app.overmind.tech/api/auth/signup">🚀 Sign up</a> |  <a href="https://www.linkedin.com/company/overmindtech/">
 </p>
 
 Use this GitHub Action to automatically submit each PR's changes to [Overmind](https://overmind.tech), reporting back the blast radius as a comment on the PR. You can see an example of what this would look like in [this PR](https://github.com/overmindtech/workspace/terraform-example/pull/57).
