@@ -77,16 +77,18 @@ runs:
             # current branch, but that would inversely _hide_ changes that are
             # on the default branch but not in this push, making it easier to
             # miss things for folks with a push-based workflow.
-            base="${{github.repository.default_branch}}"
+            base="${{github.event.repository.default_branch}}"
           fi
           head="$(jq -r .after < ${{github.event_path}} )"
           args+=("--code-changes-diff=./overmindtech/code-changes.diff")
         fi
 
-        if [ -n "$code_changes_arg" ]; then
+        if [ -n "$base" ] && [ -n "$head" ]; then
           git fetch --depth=1 origin "$base"
           git fetch --depth=1 origin "$head"
           git diff "$base" "$head" > ./overmindtech/code-changes.diff
+        else
+          echo "No base or head found, skipping code changes diff"
         fi
 
         if [ -f ${{ inputs.plan-output }} ]; then
