@@ -35,6 +35,9 @@ inputs:
   tags:
     description: "A comma separated list of key=value tags to attach to the change"
     required: false
+  labels:
+    description: "A comma separated list of name=color labels to attach to the change"
+    required: false
 
 outputs:
   change-url:
@@ -98,6 +101,10 @@ runs:
 
         if [ -n "${{ inputs.tags }}" ]; then
           args+=("--tags=${{ inputs.tags }}")
+        fi
+
+        if [ -n "${{ inputs.labels }}" ]; then
+          args+=("--labels=${{ inputs.labels }}")
         fi
 
         if [ ${{ github.event_name }} = pull_request ]; then
