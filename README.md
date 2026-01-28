@@ -20,14 +20,14 @@
   <a href="https://www.youtube.com/watch?v=cr4Q0oLaANk">🎥 Watch a demo</a> | <a href="https://overmind.tech/how-it-work">📖 How it works</a> | <a href="https://app.overmind.tech/api/auth/signup">🚀 Sign up</a> |  <a href="https://www.linkedin.com/company/overmindtech/">
 </p>
 
-Use this GitHub Action to automatically submit each PR's changes to [Overmind](https://overmind.tech), reporting back the blast radius as a comment on the PR. You can see an example of what this would look like in [this PR](https://github.com/overmindtech/workspace/terraform-example/pull/57).
+Use this GitHub Action to automatically submit each PR's changes to [Overmind](https://overmind.tech), reporting back the blast radius as a comment on the PR. You can see an example of what this would look like in [this PR](https://github.com/overmindtech/terraform-example/pull/57).
 
 <details>
   <summary>Not using GitHub?</summary>
 
   Currently we only have an action for GitHub, but don't fear! We have a CLI that you can use to integrate your own CI tooling:
 
-  1. Download the CLI from here: <https://github.com/overmindtech/workspace/cli/releases>
+  1. Download the CLI from here: <https://github.com/overmindtech/cli/releases>
   2. Set the `OVM_API_KEY` environment variable to your API Key
   3. Add a step to your pipeline to create a change:
 
@@ -42,11 +42,11 @@ Use this GitHub Action to automatically submit each PR's changes to [Overmind](h
 </details>
 </br>
 
-![Example Overmind report showing the expected changes and timeline for the example PR](https://github.com/overmindtech/workspace/terraform-example/blob/6d7240aec15b0992901fabe56be25c789b636cbb/assets/overmind%20risk%20.gif)
+![Example Overmind report showing the expected changes and timeline for the example PR](https://github.com/overmindtech/terraform-example/blob/6d7240aec15b0992901fabe56be25c789b636cbb/assets/overmind%20risk%20.gif)
 
 # Usage
 
-The `install` action installs the [`overmind`](https://github.com/overmindtech/workspace/cli) CLI.
+The `install` action installs the [`overmind`](https://github.com/overmindtech/cli) CLI.
 
 ```yaml
 - uses: overmindtech/actions/install-cli@main
