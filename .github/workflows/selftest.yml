@@ -44,7 +44,7 @@ jobs:
           terraform show -json tfplan > tfplan.json
 
       - name: Upload Example GitHub Data
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ !env.ACT }} # skip during local actions testing
         with:
           name: github_event.json
