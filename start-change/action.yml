@@ -18,6 +18,10 @@ inputs:
   app:
     description: "The Overmind instance to connect to. Defaults to `https://app.overmind.tech`"
     required: false
+  wait-for-snapshot:
+    description: "Wait for the snapshot to complete before returning. Defaults to false."
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -40,7 +44,13 @@ runs:
           app_arg="--app ${{ inputs.app }}"
         fi
 
+        wait_arg=""
+        if [ "${{ inputs.wait-for-snapshot }}" = "true" ]; then
+          wait_arg="--wait-for-snapshot"
+        fi
+
         ./overmindtech/overmind changes start-change \
             --ticket-link "$ticket_link" \
             --log '${{ inputs.log }}' \
-            $app_arg
+            $app_arg \
+            $wait_arg
