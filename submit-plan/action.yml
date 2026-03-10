@@ -35,6 +35,9 @@ inputs:
   tags:
     description: "A comma separated list of key=value tags to attach to the change"
     required: false
+  comment-header:
+    description: "Header for the sticky PR comment (used to distinguish multiple submit-plan calls on the same PR)"
+    default: change
   # ENG-1985, disabled until we decide how manual labels and manual tags should be handled.
   # labels:
   #   description: "A comma separated list of name=color labels to attach to the change"
@@ -157,7 +160,7 @@ runs:
       uses: marocchino/sticky-pull-request-comment@v2
       if: ${{ steps.submit-plan.outputs.change-url != '' && inputs.fetch-change != 'false' }}
       with:
-        header: change
+        header: ${{ inputs.comment-header }}
         message: ${{ steps.submit-plan.outputs.message }}
         number: ${{ inputs.number }}
 
