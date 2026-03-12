@@ -71,8 +71,8 @@ The `submit-plan` action takes a JSON-formatted terraform plan, creates an Overm
 - uses: overmindtech/actions/submit-plan@main
   id: submit-plan
   with:
-    ovm-api-key: ${{ secrets.OVM_API_KEY }}
-    plan-json: ./tfplan.json
+    ovm-api-key: ${{ secrets.OVM_API_KEY }} # Generated within Overmind
+    plan-json: ./tfplan.json # Location of the plan in JSON format
 ```
 
 ## Inputs
