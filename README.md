@@ -167,7 +167,7 @@ To create an API key to use with this action go to [Account Settings > API Keys]
 
 ![api keys auth window](./doc/api_keys.png)
 
-Give the key a name e.g. "Github Actions" and select the `account:read`, `changes:write`, `config:write`, `request:receive`, and `source:write` permissions and click "Confirm". This will create the API key and authorize it. The key should then display as "Ready" in the UI.
+Give the key a name e.g. "Github Actions" and select the `account:read`, `changes:write`, `config:write`, `request:receive`, `sources:read` and `source:write` permissions and click "Confirm". This will create the API key and authorize it. The key should then display as "Ready" in the UI.
 
 You can then copy the API key and [create a secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository) called `OVM_API_KEY` in Github Actions. The action will now be ready to use.
 
