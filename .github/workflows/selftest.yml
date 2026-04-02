@@ -11,7 +11,7 @@ jobs:
       URL: ${{ vars.URL }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: ./install-cli
         with:
@@ -26,12 +26,12 @@ jobs:
 
       - name: Cache Terraform Providers
         id: cache-terraform
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./testmodule/.terraform
           key: ${{ runner.os }}-${{ hashFiles('./testmodule/.terraform.lock.hcl') }}
 
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false
 
@@ -44,14 +44,14 @@ jobs:
           terraform show -json tfplan > tfplan.json
 
       - name: Upload Example GitHub Data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ !env.ACT }} # skip during local actions testing
         with:
           name: github_event.json
           path: ${{ github.event_path }}
 
       - name: Upload Example Plan Data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ !env.ACT }} # skip during local actions testing
         with:
           name: tfplan.json

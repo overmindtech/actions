@@ -25,19 +25,28 @@ Use this GitHub Action to automatically submit each PR's changes to [Overmind](h
 <details>
   <summary>Not using GitHub?</summary>
 
-  Currently we only have an action for GitHub, but don't fear! We have a CLI that you can use to integrate your own CI tooling:
+  We have a CLI that you can use to integrate your own CI tooling:
 
   1. Download the CLI from here: <https://github.com/overmindtech/cli/releases>
   2. Set the `OVM_API_KEY` environment variable to your API Key
-  3. Add a step to your pipeline to create a change:
+  3. Submit a plan:
 
   ```shell
   ./overmind changes submit-plan \
-    --title 'Pull request title goes here' \
-    --description 'PR description goes here' \
+    --comment \
     --ticket-link 'link to PR goes here' \
-    --plan-json 'path/to/plan.json'
+    tfplan.json
   ```
+
+  For parallel planning workflows (multiple plans per change), use `--no-start` on each plan and `start-analysis` to trigger analysis once:
+
+  ```shell
+  ./overmind changes submit-plan --no-start --ticket-link "$PR_URL" plan1.json
+  ./overmind changes submit-plan --no-start --ticket-link "$PR_URL" plan2.json
+  ./overmind changes start-analysis --comment --ticket-link "$PR_URL"
+  ```
+
+  See the [custom integrations docs](https://docs.overmind.tech/integrations/build_your_own) for more details.
 
 </details>
 </br>
@@ -56,7 +65,7 @@ The `install` action installs the [`overmind`](https://github.com/overmindtech/c
     github-api-url: https://ghe.company.com/api/v3 # API for GitHub Enterprise Server (optional)
 ```
 
-The `submit-plan` action takes a JSON-formatted terraform plan, creates a Overmind Change for it, and runs Impact Analysis.
+The `submit-plan` action takes a JSON-formatted terraform plan, creates an Overmind Change for it, and runs Impact Analysis. When the [Overmind GitHub App](https://docs.overmind.tech/integrations/github_app) is installed, the action exits immediately and the App posts results asynchronously as a PR comment. Without the App, it falls back to polling and posting a sticky comment.
 
 ```yaml
 - uses: overmindtech/actions/submit-plan@main
@@ -65,6 +74,31 @@ The `submit-plan` action takes a JSON-formatted terraform plan, creates a Overmi
     ovm-api-key: ${{ secrets.OVM_API_KEY }} # Generated within Overmind
     plan-json: ./tfplan.json # Location of the plan in JSON format
 ```
+
+## Inputs
+
+| Input | Default | Description |
+| --- | --- | --- |
+| `ovm-api-key` | (required) | Overmind API key. |
+| `plan-json` | `tfplan.json` | Path to JSON plan file(s). Space-separated for multiple files. |
+| `plan-output` | `tfplan.output` | Path to rendered plan output (`terraform plan \| tee FILE`). |
+| `comment` | `"true"` | Post results as a PR comment. Uses GitHub App when installed, falls back to sticky comment. |
+| `wait` | `"false"` | Block until analysis completes and populate the `message` output. |
+| `tags` | | Comma-separated key=value tags. |
+| `comment-header` | `change` | Sticky comment header (use different values for multiple plans on same PR). |
+| `app` | | Overmind instance URL (Enterprise on-prem). |
+| `number` | PR number | Pull request number. |
+| `log` | `info` | Log level. |
+
+> **Deprecated:** `fetch-change` is deprecated. Use `comment` and `wait` instead.
+
+## Outputs
+
+| Output | Description |
+| --- | --- |
+| `change-url` | URL of the created change. |
+| `message` | Markdown summary (populated when `wait: true` or sticky comment fallback). |
+| `github-app-active` | `"true"` when the GitHub App is posting the PR comment. |
 
 ## Pre-Mortem Example
 

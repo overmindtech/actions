@@ -23,9 +23,15 @@ inputs:
   log:
     description: The log level for the job
     default: info
+  comment:
+    description: "Post analysis results as a PR comment. Uses the Overmind GitHub App when installed (async, no CI wait), otherwise falls back to a sticky PR comment."
+    default: "true"
+  wait:
+    description: "Block until analysis completes and make results available as the `message` step output. Useful for gating deployments or including results in Slack messages."
+    default: "false"
   fetch-change:
-    description: Whether or not to fetch the change after submitting it. Set this to 'false' to avoid waiting for risk calculation when no human review is required.
-    default: true
+    description: "[Deprecated: use 'comment' and 'wait' instead] Whether or not to fetch the change after submitting it."
+    required: false
   number:
     description: "Pull request number to report results back."
     default: ${{ github.event.number }}
@@ -35,6 +41,9 @@ inputs:
   tags:
     description: "A comma separated list of key=value tags to attach to the change"
     required: false
+  comment-header:
+    description: "Header for the sticky PR comment (used to distinguish multiple submit-plan calls on the same PR)"
+    default: change
   # ENG-1985, disabled until we decide how manual labels and manual tags should be handled.
   # labels:
   #   description: "A comma separated list of name=color labels to attach to the change"
@@ -47,7 +56,11 @@ outputs:
 
   message:
     description: "A markdown formatted message describing the current state of the change"
-    value: ${{ steps.submit-plan.outputs.change-url }}
+    value: ${{ steps.submit-plan.outputs.message }}
+
+  github-app-active:
+    description: "Whether the GitHub App is handling PR commenting for this change"
+    value: ${{ steps.submit-plan.outputs.github-app-active }}
 
 runs:
   using: composite
@@ -63,6 +76,16 @@ runs:
         declare -a args
         declare -a chg_args
 
+        # Resolve deprecated fetch-change to comment/wait
+        OVM_COMMENT='${{ inputs.comment }}'
+        OVM_WAIT='${{ inputs.wait }}'
+        if [ -n '${{ inputs.fetch-change }}' ]; then
+          echo "::warning::The 'fetch-change' input is deprecated. Use 'comment' and 'wait' instead."
+          if [ '${{ inputs.fetch-change }}' = 'false' ]; then
+            OVM_COMMENT='false'
+          fi
+        fi
+
         # figure out the git change in this event
         if [ ${{ github.event_name }} = pull_request ]; then
           base="$(jq -r .pull_request.base.sha < ${{github.event_path}} )"
@@ -71,16 +94,6 @@ runs:
         elif [ ${{ github.event_name }} = push ]; then
           base="$(jq -r .before < ${{github.event_path}} )"
           if [ "$base" = "0000000000000000000000000000000000000000" ]; then
-            # new branch was pushed, default to the repo's default branch as
-            # base for the diff
-            #
-            # Note that this is only the second-worst choice here, as this will
-            # show what's on the default branch, but not in this push as getting
-            # removed, even though a merge would keep it. To avoid _that_, we'd
-            # need to use the `merge-base` between the default branch and the
-            # current branch, but that would inversely _hide_ changes that are
-            # on the default branch but not in this push, making it easier to
-            # miss things for folks with a push-based workflow.
             base="${{github.event.repository.default_branch}}"
             prefix="origin/"
           fi
@@ -127,25 +140,84 @@ runs:
           chg_args+=("--app=${{ inputs.app }}")
         fi
 
-        ./overmindtech/overmind changes submit-plan \
-            --title "$title" \
-            --description "$description" \
-            --ticket-link "$ticket_link" \
-            "${args[@]}" \
-            '${{ inputs.plan-json }}' \
-            > ./overmindtech/change-url
+        # Submit the plan. When comment is enabled, try --comment for eval-able output.
+        # Falls back to the old (no --comment) path if the CLI doesn't support it yet.
+        GITHUB_APP_ACTIVE=false
+        if [ "$OVM_COMMENT" = "true" ]; then
+          set +e
+          SUBMIT_OUTPUT=$(./overmindtech/overmind changes submit-plan \
+              --comment \
+              --title "$title" \
+              --description "$description" \
+              --ticket-link "$ticket_link" \
+              "${args[@]}" \
+              '${{ inputs.plan-json }}' 2>./overmindtech/submit-stderr.log)
+          SUBMIT_RC=$?
+          set -e
+
+          if [ $SUBMIT_RC -eq 0 ]; then
+            eval "$SUBMIT_OUTPUT"
+          elif grep -q "unknown flag" ./overmindtech/submit-stderr.log 2>/dev/null; then
+            echo "::notice::CLI does not support --comment; falling back to legacy mode"
+            CHANGE_URL=$(./overmindtech/overmind changes submit-plan \
+                --title "$title" \
+                --description "$description" \
+                --ticket-link "$ticket_link" \
+                "${args[@]}" \
+                '${{ inputs.plan-json }}')
+          else
+            cat ./overmindtech/submit-stderr.log >&2
+            exit $SUBMIT_RC
+          fi
+        else
+          CHANGE_URL=$(./overmindtech/overmind changes submit-plan \
+              --title "$title" \
+              --description "$description" \
+              --ticket-link "$ticket_link" \
+              "${args[@]}" \
+              '${{ inputs.plan-json }}')
+        fi
+
+        echo "$CHANGE_URL" > ./overmindtech/change-url
 
         echo "ticket-link=${{ github.event.pull_request.html_url }}" >> $GITHUB_OUTPUT
         echo "${{ github.event.pull_request.html_url }}" >> ./overmindtech/ticket-link
-        echo "change-url=$(< ./overmindtech/change-url)" >> $GITHUB_OUTPUT
+        echo "change-url=$CHANGE_URL" >> $GITHUB_OUTPUT
+        echo "github-app-active=${GITHUB_APP_ACTIVE:-false}" >> $GITHUB_OUTPUT
 
-        if [ ${{ inputs.fetch-change }} != "false" ]; then
-          ./overmindtech/overmind changes get-change \
-            --change "$(< ./overmindtech/change-url)" \
+        # Decide whether to fetch the change summary
+        should_fetch=false
+        if [ "$OVM_WAIT" = "true" ]; then
+          should_fetch=true
+        elif [ "${GITHUB_APP_ACTIVE:-false}" != "true" ] && [ "$OVM_COMMENT" = "true" ]; then
+          should_fetch=true
+        fi
+
+        if [ "$should_fetch" = "true" ]; then
+          set +e
+          GET_OUTPUT=$(./overmindtech/overmind changes get-change \
+            --change "$CHANGE_URL" \
+            --wait \
             --format markdown \
             --log '${{ inputs.log }}' \
-            "${chg_args[@]}" \
-            > ./overmindtech/message
+            "${chg_args[@]}" 2>./overmindtech/get-stderr.log)
+          GET_RC=$?
+          set -e
+
+          if [ $GET_RC -eq 0 ]; then
+            echo "$GET_OUTPUT" > ./overmindtech/message
+          elif grep -q "unknown flag" ./overmindtech/get-stderr.log 2>/dev/null; then
+            echo "::notice::CLI does not support --wait on get-change; falling back to legacy mode"
+            ./overmindtech/overmind changes get-change \
+              --change "$CHANGE_URL" \
+              --format markdown \
+              --log '${{ inputs.log }}' \
+              "${chg_args[@]}" \
+              > ./overmindtech/message
+          else
+            cat ./overmindtech/get-stderr.log >&2
+            exit $GET_RC
+          fi
 
           DELIMITER="$(uuidgen)"
           echo "message<<$DELIMITER" >> $GITHUB_OUTPUT
@@ -155,20 +227,23 @@ runs:
 
     - name: Post change message as sticky comment
       uses: marocchino/sticky-pull-request-comment@v2
-      if: ${{ steps.submit-plan.outputs.change-url != '' && inputs.fetch-change != 'false' }}
+      if: >-
+        ${{ steps.submit-plan.outputs.change-url != ''
+            && steps.submit-plan.outputs.message != ''
+            && steps.submit-plan.outputs.github-app-active != 'true' }}
       with:
-        header: change
+        header: ${{ inputs.comment-header }}
         message: ${{ steps.submit-plan.outputs.message }}
         number: ${{ inputs.number }}
 
     - name: Upload change-url as file
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: overmind-change-url.txt
         path: ./overmindtech/change-url
 
     - name: Upload ticket-link as file
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: overmind-ticket-link.txt
         path: ./overmindtech/ticket-link
